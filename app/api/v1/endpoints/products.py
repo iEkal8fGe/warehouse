@@ -67,6 +67,7 @@ def update_product(
     product = crud.product.update(db, db_obj=product, obj_in=product_in)
     return product
 
+
 @router.delete("/{product_id}", response_model=ProductResponse)
 def delete_product(
     *,

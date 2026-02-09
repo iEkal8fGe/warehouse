@@ -4,10 +4,11 @@ from sqlalchemy.orm import sessionmaker
 from app.config import settings
 
 
+# Создаем движок базы данных
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True,  # Проверка соединения перед использованием
-    echo=True  # Логирование SQL (отключить в проде)
+    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
+    echo=True if settings.ENVIRONMENT == "development" else False,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

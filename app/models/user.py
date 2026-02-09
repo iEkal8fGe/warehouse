@@ -4,14 +4,14 @@ from app.database import Base
 
 
 class UserRole(Base):
-    __tablename__ = "user_role"
+    __tablename__ = "user_roles"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(Integer, nullable=False)
 
 
 class User(Base):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
@@ -23,3 +23,11 @@ class User(Base):
 
     def __repr__(self):
         return f"<User {self.username}>"
+
+
+# python -c "
+# from app.database import engine, Base
+# from app.models.user import User
+# Base.metadata.create_all(bind=engine)
+# print('Таблицы созданы')
+# "

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Админ-панель{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>Админ-панель</h1>
+
+    <div class="admin-stats">
+        <div class="stat-card">
+            <h3>Всего пользователей</h3>
+            <p id="total-users">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Активных</h3>
+            <p id="active-users">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Админов</h3>
+            <p id="admin-users">0</p>
+        </div>
+    </div>
+
+    <div class="admin-actions">
+        <button class="btn btn-primary" onclick="showCreateUserModal()">
+            + Создать пользователя
+        </button>
+        <button class="btn btn-secondary" onclick="loadUsers()">
+            Обновить список
+        </button>
+    </div>
+
+    <div class="users-table-container">
+        <h2>Пользователи</h2>
+        <table class="users-table" id="users-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя пользователя</th>
+                    <th>Email</th>
+                    <th>Полное имя</th>
+                    <th>Статус</th>
+                    <th>Роль</th>
+                    <th>Дата регистрации</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="users-table-body">
+                <!-- Данные будут загружены через JS -->
+            </tbody>
+        </table>
+        <div class="pagination" id="pagination"></div>
+    </div>
+</div>
+
+<!-- Модальное окно создания пользователя -->
+<div id="createUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Создать нового пользователя</h2>
+        <form id="create-user-form" onsubmit="createUser(event)">
+            <div class="form-group">
+                <label for="username">Имя пользователя *</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="full_name">Полное имя</label>
+                <input type="text" id="full_name" name="full_name">
+            </div>
+            <div class="form-group">
+                <label for="password">Пароль *</label>
+                <input type="password" id="password" name="password" required minlength="8">
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="is_active" name="is_active" checked>
+                    Активный
+                </label>
+                <label>
+                    <input type="checkbox" id="is_superuser" name="is_superuser">
+                    Администратор
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Создать</button>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования пользователя -->
+<div id="editUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Редактировать пользователя</h2>
+        <form id="edit-user-form" onsubmit="updateUser(event)">
+            <input type="hidden" id="edit-user-id">
+            <div class="form-group">
+                <label for="edit-username">Имя пользователя</label>
+                <input type="text" id="edit-username" readonly>
+            </div>
+            <div class="form-group">
+                <label for="edit-email">Email *</label>
+                <input type="email" id="edit-email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-full_name">Полное имя</label>
+                <input type="text" id="edit-full_name" name="full_name">
+            </div>
+            <div class="form-group">
+                <label for="edit-password">Новый пароль (оставьте пустым, если не меняете)</label>
+                <input type="password" id="edit-password" name="password">
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="edit-is_active" name="is_active">
+                    Активный
+                </label>
+                <label>
+                    <input type="checkbox" id="edit-is_superuser" name="is_superuser">
+                    Администратор
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', path='/js/admin.js') }}"></script>
+{% endblock %}

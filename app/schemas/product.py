@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -11,7 +11,8 @@ class ProductBase(BaseModel):
     is_active: bool = True
 
     @field_validator('price')
-    def price_positive(self, v):
+    @classmethod
+    def price_positive(cls, v) -> str:
         if v <= 0:
             raise ValueError('Price must be positive')
         return v
@@ -39,4 +40,4 @@ class ProductInDB(ProductBase):
 
 
 class ProductResponse(ProductInDB):
-    pass
+    model_config = ConfigDict(from_attributes=True)
