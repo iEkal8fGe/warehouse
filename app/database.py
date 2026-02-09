@@ -1,20 +1,21 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from app.config import settings
 
-# Для синхронной работы (проще для начала)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    settings.DATABASE_URL,
+    pool_pre_ping=True,  # Проверка соединения перед использованием
+    echo=True  # Логирование SQL (отключить в проде)
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Функция для получения сессии БД
+
 def get_db():
+    """Dependency для получения сессии БД"""
     db = SessionLocal()
     try:
         yield db

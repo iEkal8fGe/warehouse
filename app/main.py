@@ -1,58 +1,46 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from app.api.api import api_router
+from app.config import settings
+from app.frontend.routes import router as frontend_router
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+)
+
+# Настройка CORS
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+# Монтируем API
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Монтируем фронтенд
+app.include_router(frontend_router)
+
+# Статические файлы
+app.mount("/static", StaticFiles(directory="app/frontend/static"), name="static")
+
+# Шаблоны Jinja2
+templates = Jinja2Templates(directory="app/frontend/templates")
 
 
-app = FastAPI(title="Мой первый FastAPI", version="1.0.0")
+@app.get("/")
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    return """
-    <html>
-        <head>
-            <title>FastAPI на Python 3.14</title>
-            <style>
-                body { font-family: Arial; padding: 40px; }
-                h1 { color: #009688; }
-                code { background: #f4f4f4; padding: 2px 5px; }
-            </style>
-        </head>
-        <body>
-            <h1>🎉 FastAPI работает!</h1>
-            <p>Python 3.14 + FastAPI + uv</p>
-            <ul>
-                <li><a href="/docs">📚 Swagger документация</a></li>
-                <li><a href="/redoc">📖 ReDoc документация</a></li>
-                <li><a href="/api/health">❤️ Health check</a></li>
-                <li><a href="/api/items/123">📦 Пример API</a></li>
-            </ul>
-        </body>
-    </html>
-    """
-
-@app.get("/api/health")
-async def health():
-    return {
-        "status": "healthy",
-        "python_version": "3.14",
-        "stack": "FastAPI + uv"
-    }
-
-@app.get("/api/items/{item_id}")
-async def read_item(item_id: int, q: str = None):
-    return {
-        "item_id": item_id,
-        "query": q,
-        "message": f"Обработка item {item_id}"
-    }
-
-@app.post("/api/items/")
-async def create_item(name: str, price: float):
-    return {
-        "name": name,
-        "price": price,
-        "created": True
-    }
 
 if __name__ == "__main__":
     import uvicorn
@@ -60,8 +48,15 @@ if __name__ == "__main__":
         "app.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True
+        reload=True,
+        log_level="info"
     )
 
+
+# On win
+# .venv\Scripts\Activate.ps1
+
+# Other
+# source venv\bin\Activate
 
 # python -m app.main
