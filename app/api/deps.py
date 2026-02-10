@@ -12,6 +12,7 @@ from app.crud.user import user
 from app.database import get_db
 from app.schemas.user import TokenPayload
 
+
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/login"
 )

@@ -10,9 +10,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import engine, Base, SessionLocal
 from app.models.user import User
-from app.models.product import Product
-from app.crud.user import user as crud_user
-from app.schemas.user import UserCreate
 from app.core.security import get_password_hash
 
 
@@ -33,43 +30,51 @@ def create_initial_admin():
             print("✓ Администратор уже существует")
             return
 
-        # Создаем хеш пароля вручную, чтобы обойти ограничение длины
-        password = "Admin123!"  # Более надежный пароль
-        if len(password) > 72:
-            password = password[:72]  # Обрезаем до 72 символов для bcrypt
+        username = "admin"
+        password = "Admin123!"  # Пароль должен проходить валидацию
 
-        admin_data = {
-            "username": "admin",
-            "email": "admin@example.com",
-            "password": password,
-            "full_name": "Системный Администратор",
-            "is_superuser": True
-        }
+        # 1. Сначала проверяем пароль через Pydantic если есть схема
+        try:
+            # Если есть схема UserCreate, используем ее для валидации
+            from app.schemas.user import UserCreate
+            # Это проверит минимальную длину и требования к паролю
+            UserCreate(username=username, password=password)
+        except ImportError:
+            if len(password) < 8:
+                raise ValueError("Пароль должен быть минимум 8 символов")
 
-        # Создаем пользователя напрямую, чтобы избежать проблем с валидацией
+        # password_bytes = password.encode('utf-8')
+        # if len(password_bytes) > 72:
+        #     print(f"⚠️  Пароль слишком длинный ({len(password_bytes)} байт), обрезаем до 72 байт")
+        #     password_bytes = password_bytes[:72]
+        #     password = password_bytes.decode('utf-8', errors='ignore')
+
         hashed_password = get_password_hash(password)
+
         admin_user = User(
-            username=admin_data["username"],
-            email=admin_data["email"],
-            full_name=admin_data["full_name"],
+            username=username,
             hashed_password=hashed_password,
-            is_superuser=True
+            is_superuser=True,
+            is_active=True
         )
 
         db.add(admin_user)
         db.commit()
         db.refresh(admin_user)
 
+        print("=" * 50)
         print("✓ Администратор создан успешно!")
         print(f"   Имя пользователя: {admin_user.username}")
-        print(f"   Email: {admin_user.email}")
         print(f"   Пароль: {password}")
-        print("\n⚠️  ВАЖНО: Измените пароль после первого входа!")
+        print("=" * 50)
+        print("⚠️  ВАЖНО: Измените пароль после первого входа!")
+        print("=" * 50)
 
     except Exception as e:
         db.rollback()
         print(f"✗ Ошибка при создании администратора: {e}")
-        raise
+        import traceback
+        traceback.print_exc()
     finally:
         db.close()
 
@@ -124,7 +129,7 @@ def main():
 
     create_tables()
     create_initial_admin()
-    create_test_data()
+    # create_test_data()
 
     print("\n" + "=" * 50)
     print("Инициализация завершена успешно!")

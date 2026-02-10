@@ -1,7 +1,7 @@
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app import crud, schemas
+from app import crud
 from app.api import deps
 from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
 from app.schemas.user import UserInDB

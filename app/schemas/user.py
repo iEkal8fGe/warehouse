@@ -3,16 +3,19 @@ from typing import Optional, List
 from datetime import datetime
 
 
+# - - - USER PYDANTIC MODELS - - - #
+
+
 class UserBase(BaseModel):
     username: str
-    full_name: Optional[str] = None
+    # full_name: Optional[str] = None
     is_active: Optional[bool] = True
 
 
 class UserCreate(UserBase):
     password: str
-    full_name: Optional[str] = None
-    is_active: Optional[bool] = True
+    # full_name: Optional[str] = None
+    # is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
 
     @field_validator('password')
@@ -28,10 +31,10 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
+    # username: Optional[str] = None
     password: Optional[str] = None
     is_active: Optional[bool] = None
-    is_superuser: Optional[bool] = None  # <-- Добавили
+    is_superuser: Optional[bool] = None
 
 
 class UserInDB(UserBase):
@@ -53,10 +56,16 @@ class UserList(BaseModel):
     users: List[UserResponse]
 
 
+# - - - /END USER PYDANTIC MODELS - - - #
+
+
+# - - - JWT TOKEN PYDANTIC MODELS - - - #
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    expires_in: Optional[int] = 3600 # seconds
+    expires_in: Optional[int] = 3600    # seconds
 
 
 class TokenPayload(BaseModel):
@@ -71,3 +80,5 @@ class TokenPayload(BaseModel):
         if self.exp is None:
             return False
         return datetime.fromtimestamp(self.exp) < datetime.now()
+
+# - - - /END JWT TOKEN PYDANTIC MODELS - - - #

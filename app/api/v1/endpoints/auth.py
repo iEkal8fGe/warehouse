@@ -7,10 +7,26 @@ from app.config import settings
 from app.crud.user import user
 from app.api import deps
 from app.core.security import create_access_token
-from app.schemas.user import Token, UserResponse
+from app.schemas.user import Token, UserResponse, UserCreate
 
 
 router = APIRouter()
+
+
+@router.post("/register", response_model=UserResponse)
+def register_user(
+        *,
+        db: Session = Depends(deps.get_db),
+        user_data: UserCreate
+) -> Any:
+    if user.get_by_username(db, username=user_data.username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already registered"
+        )
+
+    new_user = user.create(db, obj_in=user_data)
+    return new_user
 
 
 @router.post("/login", response_model=Token)
@@ -42,44 +58,6 @@ def login_access_token(
         ),
         "token_type": "bearer",
     }
-
-
-@router.post("/register", response_model=UserResponse)
-def register_user(
-        *,
-        db: Session = Depends(deps.get_db),
-        username: str,
-        email: str,
-        password: str,
-        full_name: str = None,
-) -> Any:
-    """
-    Регистрация нового пользователя
-    """
-    # Проверка существующего пользователя
-    existing_user = user.get_by_username(db, username=username)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered"
-        )
-
-    existing_email = user.get_by_email(db, email=email)
-    if existing_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
-
-    user_in = {
-        "username": username,
-        "email": email,
-        "password": password,
-        "full_name": full_name,
-    }
-
-    new_user = user.create(db, obj_in=user_in)
-    return new_user
 
 
 @router.get("/me", response_model=UserResponse)

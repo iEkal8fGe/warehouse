@@ -1,12 +1,31 @@
-from typing import Any, List
+from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from app import crud, schemas
+from app import crud
 from app.api import deps
 from app.schemas.user import UserResponse, UserCreate, UserUpdate, UserList, UserInDB
 
 
 router = APIRouter()
+
+
+# @router.get("/admin", response_class=HTMLResponse)
+# async def admin_dashboard(
+#         request: Request,
+#         current_user=Depends(get_current_user),
+#         db: Session = Depends(get_db)
+# ):
+#     # Проверяем, является ли пользователь админом
+#     if not current_user or not current_user.is_superuser:
+#         return HTMLResponse(
+#             content="<h1>Доступ запрещен</h1><p>У вас нет прав для доступа к этой странице.</p>",
+#             status_code=403
+#         )
+#
+#     return {
+#         "request": request,
+#         "current_user": current_user
+#     }
 
 
 @router.get("/users", response_model=UserList)
