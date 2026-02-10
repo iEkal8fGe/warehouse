@@ -1,156 +1,61 @@
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app import crud
 from app.api import deps
 from app.schemas.user import UserResponse, UserCreate, UserUpdate, UserList, UserInDB
+from app.crud.user import user
 
 
 router = APIRouter()
 
 
-# @router.get("/admin", response_class=HTMLResponse)
-# async def admin_dashboard(
-#         request: Request,
-#         current_user=Depends(get_current_user),
-#         db: Session = Depends(get_db)
-# ):
-#     # Проверяем, является ли пользователь админом
-#     if not current_user or not current_user.is_superuser:
-#         return HTMLResponse(
-#             content="<h1>Доступ запрещен</h1><p>У вас нет прав для доступа к этой странице.</p>",
-#             status_code=403
-#         )
+# @router.get("/users", response_model=UserList)
+# def read_users(
+#         db: Session = Depends(deps.get_db),
+#         skip: int = Query(0, ge=0),
+#         limit: int = Query(100, ge=1, le=100),
+#         current_user: UserInDB = Depends(deps.get_current_active_superuser),
+# ) -> Any:
+#     """
+#     Получить список пользователей (только для админов)
+#     """
+#     # get_multi does not exists!
+#     users = crud.user.get_multi(db, skip=skip, limit=limit)
+#     total = db.query(crud.user.model).count()
 #
 #     return {
-#         "request": request,
-#         "current_user": current_user
+#         "total": total,
+#         "users": users
 #     }
 
 
-@router.get("/users", response_model=UserList)
-def read_users(
-        db: Session = Depends(deps.get_db),
-        skip: int = Query(0, ge=0),
-        limit: int = Query(100, ge=1, le=100),
-        current_user: UserInDB = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """
-    Получить список пользователей (только для админов)
-    """
-    users = crud.user.get_multi(db, skip=skip, limit=limit)
-    total = db.query(crud.user.model).count()
-
-    return {
-        "total": total,
-        "users": users
-    }
-
-
-@router.post("/users", response_model=UserResponse)
-def create_user(
-        *,
-        db: Session = Depends(deps.get_db),
-        user_in: UserCreate,
-        current_user: UserInDB = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """
-    Создать нового пользователя (только для админов)
-    """
-    # Проверяем существующего пользователя
-    user = crud.user.get_by_username(db, username=user_in.username)
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Пользователь с таким именем уже существует",
-        )
-
-    user = crud.user.get_by_email(db, email=user_in.email)
-    if user:
-        raise HTTPException(
-            status_code=status.HTP_400_BAD_REQUEST,
-            detail="Пользователь с таким email уже существует",
-        )
-
-    user = crud.user.create(db, obj_in=user_in)
-    return user
+# @router.get('/users/{user_id}/change_role', response_model=UserResponse)
+# async def change_user_role(
+#         user_id: int,
+#         db: Session = Depends(deps.get_db)
+# ) -> Any:
+#     cuser = user.get_by_id(db, id=user_id)
+#     if not current_user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="User not found",
+#         )
+#
+#     if
 
 
 @router.get("/users/{user_id}", response_model=UserResponse)
 def read_user_by_id(
         user_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: UserInDB = Depends(deps.get_current_active_superuser),
+        db: Session = Depends(deps.get_db)
 ) -> Any:
-    """
-    Получить пользователя по ID (только для админов)
-    """
-    user = crud.user.get(db, id=user_id)
-    if not user:
+    current_user = user.get_by_id(db, id=user_id)
+    if not current_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Пользователь не найден",
+            detail="User not found",
         )
-    return user
-
-
-@router.put("/users/{user_id}", response_model=UserResponse)
-def update_user(
-        *,
-        db: Session = Depends(deps.get_db),
-        user_id: int,
-        user_in: UserUpdate,
-        current_user: UserInDB = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """
-    Обновить пользователя (только для админов)
-    """
-    user = crud.user.get(db, id=user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Пользователь не найден",
-        )
-
-    # Проверяем email на уникальность
-    if user_in.email and user_in.email != user.email:
-        existing_user = crud.user.get_by_email(db, email=user_in.email)
-        if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Пользователь с таким email уже существует",
-            )
-
-    user = crud.user.update(db, db_obj=user, obj_in=user_in)
-    return user
-
-
-@router.delete("/users/{user_id}", response_model=UserResponse)
-def delete_user(
-        *,
-        db: Session = Depends(deps.get_db),
-        user_id: int,
-        current_user: UserInDB = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """
-    Удалить пользователя (только для админов)
-    """
-    user = crud.user.get(db, id=user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Пользователь не найден",
-        )
-
-    # Нельзя удалить себя
-    if user.id == current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Нельзя удалить свой аккаунт",
-        )
-
-    user = crud.user.remove(db, id=user_id)
-    return user
+    return current_user
 
 
 @router.put("/users/{user_id}/toggle-active", response_model=UserResponse)
@@ -160,24 +65,78 @@ def toggle_user_active(
         user_id: int,
         current_user: UserInDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
-    """
-    Включить/выключить пользователя (только для админов)
-    """
-    user = crud.user.get(db, id=user_id)
-    if not user:
+    cuser = user.get(db, id=user_id)
+    if not cuser:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Пользователь не найден",
+            detail="User not found",
         )
 
-    # Нельзя деактивировать себя
-    if user.id == current_user.id:
+    if cuser.id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Нельзя деактивировать свой аккаунт",
+            detail="Can not deactivate yourself",
         )
 
-    user.is_active = not user.is_active
+    cuser.is_active = not user.is_active
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.put("/users/{user_id}", response_model=UserResponse)
+def update_user(
+        *,
+        db: Session = Depends(deps.get_db),
+        user_id: int,
+        user_in: UserUpdate,
+) -> Any:
+    current_user = user.get_by_id(db, id=user_id)
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    current_user = user.update(db, db_obj=user, obj_in=user_in)
+    return current_user
+
+
+@router.delete("/users/{user_id}", response_model=UserResponse)
+def delete_user(
+        *,
+        db: Session = Depends(deps.get_db),
+        user_id: int,
+        current_user: UserInDB = Depends(deps.get_current_active_superuser),
+) -> Any:
+    cuser = user.get_by_id(db, id=user_id)
+    if not cuser:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if cuser.id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can not remove yourself",
+        )
+
+    cuser = user.remove(db, id=user_id)
+    return cuser
+
+
+@router.post("/create_user", response_model=UserResponse)
+def create_user(
+        *,
+        db: Session = Depends(deps.get_db),
+        user_data: UserCreate,
+) -> Any:
+    if user.get_by_username(db, username=user_data.username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already registered",
+        )
+
+    new_user = user.create(db, obj_in=user_data)
+    return new_user

@@ -17,7 +17,7 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(
-        subject: Union[str, Any],
+        subject: Union[str, Any],  # Здесь ожидается строка, а не dict!
         expires_delta: Optional[timedelta] = None
 ) -> str:
     if expires_delta:
@@ -27,6 +27,7 @@ def create_access_token(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
+    # subject уже должен быть строкой (username)
     to_encode = {"exp": expire, "sub": str(subject)}
     encoded_jwt = jwt.encode(
         to_encode,
@@ -34,6 +35,7 @@ def create_access_token(
         algorithm=settings.ALGORITHM
     )
     return encoded_jwt
+
 
 
 def decode_token(token: str) -> Optional[dict]:

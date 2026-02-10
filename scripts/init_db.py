@@ -90,8 +90,6 @@ def create_test_data():
             hashed_password = get_password_hash(password)
             test_user = User(
                 username="testuser",
-                email="test@example.com",
-                full_name="Тестовый Пользователь",
                 hashed_password=hashed_password,
                 is_superuser=False
             )

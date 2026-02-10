@@ -49,6 +49,7 @@ logs/
 # PyCharm
 .idea/
 *.iml
+misc.xml
 
 # VSCode
 .vscode/

@@ -42,12 +42,12 @@ class Settings(BaseSettings):
     POSTGRES_PORT: str = "5432"
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "http://localhost:5173",
-        "http://localhost:8000",
-    ]
+    # BACKEND_CORS_ORIGINS: List[str] = [
+    #     "http://localhost:3000",
+    #     "http://localhost:8080",
+    #     "http://localhost:5173",
+    #     "http://localhost:8000",
+    # ]
 
     @property
     def DATABASE_URL(self) -> str:

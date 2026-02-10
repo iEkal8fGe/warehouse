@@ -18,13 +18,11 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 
+# deps.py - упрощенная версия
 def get_current_user(
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme)
 ) -> user.model:
-    """
-    Получает текущего пользователя из JWT токена
-    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -32,43 +30,29 @@ def get_current_user(
     )
 
     try:
-        # Декодируем JWT токен
+        # Просто декодируем без валидации через Pydantic
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
         )
 
-        # Проверяем expiration time если есть
-        exp = payload.get("exp")
-        if exp:
-            if datetime.fromtimestamp(exp) < datetime.now():
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Token expired",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
+        username = payload.get("sub")
+        print("username: ", username)
+        if username is None:
+            raise credentials_exception
 
-        # Валидируем через Pydantic
-        token_data = TokenPayload(**payload)
-
-    except ExpiredSignatureError:
+    except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
+            detail="Token expired",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except DecodeError:
-        raise credentials_exception
-    except InvalidTokenError:
-        raise credentials_exception
-    except ValidationError:
-        raise credentials_exception
-    except Exception:
+    except jwt.InvalidTokenError:
         raise credentials_exception
 
     # Получаем пользователя
-    user_obj = user.get_by_username(db, username=token_data.sub)
+    user_obj = user.get_by_username(db, username=username)
     if user_obj is None:
         raise credentials_exception
 
