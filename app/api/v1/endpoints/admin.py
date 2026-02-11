@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 # from sqlalchemy.sql.functions import current_user
 
 from app.api import deps
-from app.schemas.user import UserResponse, UserCreate, UserUpdate, UserList, UserInDB, UserDelete
+from app.schemas.user import UserResponse, UserCreate, UserUpdate, UserList, UserInDB
 from app.crud.user import user
 
 
@@ -60,80 +60,95 @@ def read_user_by_id(
     return current_user
 
 
-@router.put("/users/{user_id}/toggle-active", response_model=UserResponse)
-def toggle_user_active(
+@router.patch("/users/{user_id}/status", response_model=UserResponse)
+def update_user_active(
         *,
         db: Session = Depends(deps.get_db),
         user_id: int,
+        user_data: UserUpdate,
         current_user: UserInDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
-    cuser = user.get(db, id=user_id)
-    if not cuser:
+    """ Change the active status of user by id [RAW JSON]"""
+    db_user = user.get(db, id=user_id)
+    if not db_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
 
-    if cuser.id == current_user.id:
+    if user_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Can not deactivate yourself",
         )
 
-    cuser.is_active = not user.is_active
+    if user_data.is_active == db_user.is_active:
+        return db_user
+
+    db_user.is_active = user_data.is_active
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(db_user)
+    return db_user
 
 
-@router.post("/update_user", response_model=UserResponse)
+@router.put("/users/{user_id}", response_model=UserResponse)
 def update_user(
         *,
         db: Session = Depends(deps.get_db),
+        user_id,
         user_data: UserUpdate,
+        current_user: UserInDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
-    current_user = user.get_by_id(db, user_id=user_data.id)
-    if not current_user:
+    """ Update a user information using id [RAW JSON] """
+    db_user = user.get_by_id(db, user_id=user_id)
+    if not db_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
 
-    current_user = user.update(db, db_obj=user, obj_in=user_data)
-    return current_user
+    if user_data.username and user_data.username != db_user.username:
+        if user.get_by_username(db, username=user_data.username):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username already registered. Create unique username or do not change it",
+            )
+
+    updated_user = user.update(db, db_obj=db_user, obj_in=user_data)
+    return updated_user
 
 
-@router.delete("/delete_user", response_model=UserResponse)
+@router.delete("/users/{user_id}")
 def delete_user(
         *,
         db: Session = Depends(deps.get_db),
-        user_data: UserDelete,
+        user_id,
         current_user: UserInDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
-    cuser = user.get_by_id(db, user_id=user_data.id)
-    if not cuser:
+    """ Remove a user from the database by id [None] """
+    if not user.get_by_id(db, user_id=user_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
 
-    if cuser.id == current_user.id:
+    if user_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Can not remove yourself",
         )
 
-    cuser = user.remove(db, row_id=user_data.id)
-    return cuser
+    user.remove(db, row_id=user_id)
 
 
-@router.post("/create_user", response_model=UserResponse)
+@router.post("/users", response_model=UserResponse)
 def create_user(
         *,
         db: Session = Depends(deps.get_db),
         user_data: UserCreate,
         current_user: UserInDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
+    """ Create a new user [RAW JSON] """
     if user.get_by_username(db, username=user_data.username):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

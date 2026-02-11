@@ -7,19 +7,24 @@ from datetime import datetime
 
 
 class UserBase(BaseModel):
-    # username: str
-    # full_name: Optional[str] = None
+    username: str
     is_active: Optional[bool] = True
+    is_superuser: Optional[bool] = False
 
 
-class UserDelete(UserBase):
+class UserInDB(UserBase):
     id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
 
 
 class UserCreate(UserBase):
-    username: str
+    # username: str
     password: str
-    is_superuser: Optional[bool] = False
+    # is_superuser: Optional[bool] = False
 
     @field_validator('password')
     @classmethod
@@ -34,20 +39,15 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    id: int
+    # id: int
     username: Optional[str] = None
     password: Optional[str] = None
-    # is_active: Optional[bool] = None
+    is_active: Optional[bool] = None
     is_superuser: Optional[bool] = None
 
 
-class UserInDB(UserBase):
-    id: int
-    created_at: datetime
-    updated_at: Optional[datetime]
-
-    class Config:
-        from_attributes = True
+class UserPatch(BaseModel):
+    is_active: bool
 
 
 class UserResponse(UserInDB):

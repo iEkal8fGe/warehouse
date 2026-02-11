@@ -7,7 +7,7 @@ from .base import CRUDBase
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
-    def get_by_id(self, db: Session, *, user_id: str) -> Optional[User]:
+    def get_by_id(self, db: Session, *, user_id: int) -> Optional[User]:
         return db.query(User).filter(User.id == user_id).first()
 
     def get_by_username(self, db: Session, *, username: str) -> Optional[User]:
@@ -42,7 +42,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return current_user.is_active
 
     def is_superuser(self, current_user: User) -> bool:
-        return current_user.is_supervisor
+        return current_user.is_superuser
 
 
 user = CRUDUser(User)
