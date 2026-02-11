@@ -1,6 +1,6 @@
 from fastapi import FastAPI # , Request, Depends
 # from fastapi.middleware.cors import CORSMiddleware
-#
+
 from app.config import settings
 from app.api.api import api_router
 # from app.database import get_db

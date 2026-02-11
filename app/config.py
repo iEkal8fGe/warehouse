@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # SQLite настройки
-    SQLITE_DB_PATH: str = "../app.db"
+    SQLITE_DB_PATH: str = "./app.db"
 
     # PostgreSQL настройки
     POSTGRES_SERVER: Optional[str] = None

@@ -18,7 +18,6 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 
-# deps.py - упрощенная версия
 def get_current_user(
         db: Session = Depends(get_db),
         token: str = Depends(oauth2_scheme)
@@ -30,7 +29,6 @@ def get_current_user(
     )
 
     try:
-        # Просто декодируем без валидации через Pydantic
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,

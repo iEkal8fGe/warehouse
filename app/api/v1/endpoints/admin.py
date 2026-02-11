@@ -1,8 +1,10 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+# from sqlalchemy.sql.functions import current_user
+
 from app.api import deps
-from app.schemas.user import UserResponse, UserCreate, UserUpdate, UserList, UserInDB
+from app.schemas.user import UserResponse, UserCreate, UserUpdate, UserList, UserInDB, UserDelete
 from app.crud.user import user
 
 
@@ -84,32 +86,31 @@ def toggle_user_active(
     return user
 
 
-@router.put("/users/{user_id}", response_model=UserResponse)
+@router.post("/update_user", response_model=UserResponse)
 def update_user(
         *,
         db: Session = Depends(deps.get_db),
-        user_id: int,
-        user_in: UserUpdate,
+        user_data: UserUpdate,
 ) -> Any:
-    current_user = user.get_by_id(db, id=user_id)
+    current_user = user.get_by_id(db, user_id=user_data.id)
     if not current_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
 
-    current_user = user.update(db, db_obj=user, obj_in=user_in)
+    current_user = user.update(db, db_obj=user, obj_in=user_data)
     return current_user
 
 
-@router.delete("/users/{user_id}", response_model=UserResponse)
+@router.delete("/delete_user", response_model=UserResponse)
 def delete_user(
         *,
         db: Session = Depends(deps.get_db),
-        user_id: int,
+        user_data: UserDelete,
         current_user: UserInDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
-    cuser = user.get_by_id(db, id=user_id)
+    cuser = user.get_by_id(db, user_id=user_data.id)
     if not cuser:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -122,7 +123,7 @@ def delete_user(
             detail="Can not remove yourself",
         )
 
-    cuser = user.remove(db, id=user_id)
+    cuser = user.remove(db, row_id=user_data.id)
     return cuser
 
 
@@ -131,6 +132,7 @@ def create_user(
         *,
         db: Session = Depends(deps.get_db),
         user_data: UserCreate,
+        current_user: UserInDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
     if user.get_by_username(db, username=user_data.username):
         raise HTTPException(
