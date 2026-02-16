@@ -6,6 +6,8 @@ from app.api.api import api_router
 # from app.database import get_db
 # from app.api.deps import get_current_user
 
+import uvicorn
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -30,7 +32,6 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",

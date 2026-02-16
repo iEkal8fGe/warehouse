@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     #     "http://localhost:8000",
     # ]
 
+    # External API
+    EXTERNAL_API_KEYS: List[str] = [
+        "hello-from-the-warehouse-system-this-is-secret-external-api-key-number-1",
+        "some-hash-phrase-or-big-uuid-such-as-ext-api-key-2"
+    ]
+
     @property
     def DATABASE_URL(self) -> str:
         if self.DB_TYPE == DatabaseType.POSTGRESQL:

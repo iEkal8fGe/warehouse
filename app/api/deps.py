@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+
+from fastapi import Depends, HTTPException, status, Security, HTTPException
+from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
 import jwt
 from jwt import InvalidTokenError, ExpiredSignatureError, DecodeError
 from pydantic import ValidationError
@@ -11,6 +12,9 @@ from app.config import settings
 from app.crud.user import user
 from app.database import get_db
 from app.schemas.user import TokenPayload
+
+
+# - - - INTERNAL API DEPENDENCIES - - - #
 
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -49,7 +53,6 @@ def get_current_user(
     except jwt.InvalidTokenError:
         raise credentials_exception
 
-    # Получаем пользователя
     user_obj = user.get_by_username(db, username=username)
     if user_obj is None:
         raise credentials_exception
@@ -122,7 +125,6 @@ def get_current_user_optional(
         return None
 
 
-# Дополнительные утилиты для работы с JWT
 def create_access_token(
         data: dict,
         expires_delta: Optional[int] = None
@@ -161,3 +163,40 @@ def verify_token(token: str) -> Optional[TokenPayload]:
         return TokenPayload(**payload)
     except (InvalidTokenError, ValidationError):
         return None
+
+
+# - - - /END INTERNAL API DEPENDENCIES - - - #
+
+
+# - - - EXTERNAL API DEPENDENCIES - - - #
+
+
+# API Key for external
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+async def verify_external_api_key(
+        api_key: str = Security(api_key_header),
+) -> str:
+    """
+    Проверка API ключа для внешних систем.
+    """
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API Key required",
+        )
+
+    # Проверяем из настроек
+    valid_keys = settings.EXTERNAL_API_KEYS  # список ключей в .env
+
+    if api_key not in valid_keys:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid API Key",
+        )
+
+    return api_key
+
+
+# - - - /END EXTERNAL API DEPENDENCIES - - - #

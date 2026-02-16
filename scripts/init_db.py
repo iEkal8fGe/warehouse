@@ -1,56 +1,36 @@
-#!/usr/bin/env python3
-"""
-Скрипт инициализации базы данных.
-Создает все таблицы и начальные данные.
-"""
 import sys
 import os
+import traceback
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import engine, Base, SessionLocal
 from app.models.user import User
+from app.models.order import OrderStatus
 from app.core.security import get_password_hash
+from app.schemas.user import UserCreate
 
 
 def create_tables():
-    """Создание всех таблиц в базе данных"""
-    print("Создание таблиц...")
     Base.metadata.create_all(bind=engine)
-    print("✓ Таблицы созданы успешно")
+    print("Database tables created")
 
 
 def create_initial_admin():
-    """Создание начального администратора"""
     db = SessionLocal()
+
     try:
-        # Проверяем, существует ли уже админ
         admin = db.query(User).filter(User.username == "admin").first()
         if admin:
-            print("✓ Администратор уже существует")
+            print("Admin user already exists")
             return
 
         username = "admin"
-        password = "Admin123!"  # Пароль должен проходить валидацию
+        password = "Admin123!"
 
-        # 1. Сначала проверяем пароль через Pydantic если есть схема
-        try:
-            # Если есть схема UserCreate, используем ее для валидации
-            from app.schemas.user import UserCreate
-            # Это проверит минимальную длину и требования к паролю
-            UserCreate(username=username, password=password)
-        except ImportError:
-            if len(password) < 8:
-                raise ValueError("Пароль должен быть минимум 8 символов")
-
-        # password_bytes = password.encode('utf-8')
-        # if len(password_bytes) > 72:
-        #     print(f"⚠️  Пароль слишком длинный ({len(password_bytes)} байт), обрезаем до 72 байт")
-        #     password_bytes = password_bytes[:72]
-        #     password = password_bytes.decode('utf-8', errors='ignore')
+        UserCreate(username=username, password=password)
 
         hashed_password = get_password_hash(password)
-
         admin_user = User(
             username=username,
             hashed_password=hashed_password,
@@ -62,76 +42,62 @@ def create_initial_admin():
         db.commit()
         db.refresh(admin_user)
 
-        print("=" * 50)
-        print("✓ Администратор создан успешно!")
-        print(f"   Имя пользователя: {admin_user.username}")
-        print(f"   Пароль: {password}")
-        print("=" * 50)
-        print("⚠️  ВАЖНО: Измените пароль после первого входа!")
-        print("=" * 50)
-
+        print(f"Admin login: {admin_user.username}")
+        print(f"Admin Password: {password}\nDo not forget to change password")
     except Exception as e:
         db.rollback()
-        print(f"✗ Ошибка при создании администратора: {e}")
-        import traceback
+        print(f"Error tryna create admin user: {e}")
         traceback.print_exc()
     finally:
         db.close()
 
 
-def create_test_data():
-    """Создание тестовых данных"""
+def create_order_status():
     db = SessionLocal()
-    try:
-        # Создаем тестового пользователя
-        existing_user = db.query(User).filter(User.username == "testuser").first()
-        if not existing_user:
-            password = "Test123!"[:72]  # Обрезаем для bcrypt
-            hashed_password = get_password_hash(password)
-            test_user = User(
-                username="testuser",
-                hashed_password=hashed_password,
-                is_superuser=False
-            )
-            db.add(test_user)
-            db.commit()
-            print("✓ Тестовый пользователь создан")
 
-        # Создаем тестовые товары
-        from app.models.product import Product
-        products_count = db.query(Product).count()
-        if products_count == 0:
-            test_products = [
-                Product(name="Ноутбук", description="Мощный игровой ноутбук", price=999.99),
-                Product(name="Смартфон", description="Флагманский смартфон", price=699.99),
-                Product(name="Наушники", description="Беспроводные наушники", price=199.99),
-                Product(name="Клавиатура", description="Механическая клавиатура", price=129.99),
-                Product(name="Монитор", description="4K монитор 27 дюймов", price=499.99),
-            ]
-            db.add_all(test_products)
+    # statuses = [
+    #     {"id": 1, "name": "Новый", "code": "new", "sort_order": 1},
+    #     {"id": 2, "name": "Подтвержден", "code": "confirmed", "sort_order": 2},
+    #     {"id": 3, "name": "Оплачен", "code": "paid", "sort_order": 3},
+    #     {"id": 4, "name": "В обработке", "code": "processing", "sort_order": 4},
+    #     {"id": 5, "name": "Отгружен", "code": "shipped", "sort_order": 5},
+    #     {"id": 6, "name": "Доставлен", "code": "delivered", "sort_order": 6},
+    #     {"id": 7, "name": "Отменен", "code": "cancelled", "sort_order": 7},
+    #     {"id": 8, "name": "Возврат", "code": "refunded", "sort_order": 8},
+    # ]
+    #
+    # for status_data in statuses:
+    #     status = db.query(OrderStatus).filter(OrderStatus.id == status_data["id"]).first()
+    #     if not status:
+    #         db.add(OrderStatus(**status_data))
+
+    try:
+        status_new = db.query(OrderStatus).filter(OrderStatus.name == "new").first()
+        if not status_new:
+            status_new = OrderStatus(name="new")
+            db.add(status_new)
             db.commit()
-            print("✓ Тестовые товары созданы")
+            db.refresh(status_new)
+
+        status_shipping = db.query(OrderStatus).filter(OrderStatus.name == "shipping").first()
+        if not status_shipping:
+            status_shipping = OrderStatus(name="shipping")
+            db.add(status_shipping)
+            db.commit()
+            db.refresh(status_shipping)
 
     except Exception as e:
         db.rollback()
-        print(f"✗ Ошибка при создании тестовых данных: {e}")
+        print(f"Error tryna create admin user: {e}")
+        traceback.print_exc()
     finally:
         db.close()
 
 
 def main():
-    """Основная функция"""
-    print("=" * 50)
-    print("Инициализация базы данных")
-    print("=" * 50)
-
     create_tables()
     create_initial_admin()
-    # create_test_data()
-
-    print("\n" + "=" * 50)
-    print("Инициализация завершена успешно!")
-    print("=" * 50)
+    create_order_status()
 
 
 if __name__ == "__main__":
