@@ -20,7 +20,7 @@ const mockUsers: User[] = [
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>(mockUsers);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);  // setLoading
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -116,7 +116,7 @@ const Users: React.FC = () => {
           }}
         >
           <UserPlus size={18} />
-          <span>Новый пользователь</span>
+          <span>Create User</span>
         </Button>
       </div>
 
@@ -250,32 +250,7 @@ const Users: React.FC = () => {
         .search-input input {
           padding-left: 40px;
         }
-        .badge {
-          padding: 4px 8px;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 500;
-        }
-        .badge-success {
-          background: rgba(16, 185, 129, 0.2);
-          color: #10b981;
-          border: 1px solid #10b981;
-        }
-        .badge-danger {
-          background: rgba(239, 68, 68, 0.2);
-          color: #ef4444;
-          border: 1px solid #ef4444;
-        }
-        .badge-primary {
-          background: rgba(59, 130, 246, 0.2);
-          color: #3b82f6;
-          border: 1px solid #3b82f6;
-        }
-        .badge-secondary {
-          background: rgba(156, 163, 175, 0.2);
-          color: #9ca3af;
-          border: 1px solid #9ca3af;
-        }
+        
         .actions {
           display: flex;
           gap: 8px;

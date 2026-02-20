@@ -113,11 +113,18 @@ export function Table<T extends Record<string, any>>({
           color: rgba(255, 255, 255, 0.9);
           font-weight: 600;
           font-size: 0.9rem;
+          white-space: nowrap;
         }
         .table td {
-          padding: 16px;
+          padding: 12px 16px;
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           color: white;
+          white-space: nowrap;
+        }
+        .table td .badge {
+          display: inline-block;
+          min-width: 90px;
+          text-align: center;
         }
         .table tbody tr:hover {
           background: rgba(255, 255, 255, 0.05);

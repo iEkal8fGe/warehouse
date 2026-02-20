@@ -1,8 +1,7 @@
 import React from 'react';
 import {
   Users, Package, MapPin, ShoppingCart,
-  Home, LogOut, Menu, ChevronLeft,
-  Bell, User
+  Home, LogOut, Menu, ChevronLeft, User
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -14,11 +13,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [showMobileMenu, setShowMobileMenu] = React.useState(false);
 
   const menuItems = [
-    { path: '/admin', icon: Home, label: 'Дашборд' },
-    { path: '/admin/users', icon: Users, label: 'Пользователи' },
-    { path: '/admin/warehouses', icon: MapPin, label: 'Склады' },
-    { path: '/admin/products', icon: Package, label: 'Товары' },
-    { path: '/admin/orders', icon: ShoppingCart, label: 'Заказы' },
+    { path: '/admin', icon: Home, label: 'Dashboard' },
+    { path: '/admin/users', icon: Users, label: 'Users' },
+    { path: '/admin/warehouses', icon: MapPin, label: 'Warehouses' },
+    { path: '/admin/products', icon: Package, label: 'Products' },
+    { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
   ];
 
   const handleLogout = () => {
@@ -58,7 +57,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         <div className="sidebar-footer">
           <button className="logout-btn" onClick={handleLogout}>
             <LogOut size={20} />
-            {!collapsed && <span>Выйти</span>}
+            {!collapsed && <span>Log out</span>}
           </button>
         </div>
       </aside>
@@ -102,13 +101,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       <main className={`main-content ${collapsed ? 'expanded' : ''}`}>
         <header className="main-header">
           <div className="header-left">
-            <h1>Админ панель</h1>
+            <h1>Admin</h1>
           </div>
           <div className="header-right">
-            <button className="notification-btn">
-              <Bell size={20} />
-              <span className="badge">3</span>
-            </button>
             <div className="user-menu">
               <User size={20} />
               <span>Admin</span>
@@ -241,29 +236,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           display: flex;
           align-items: center;
           gap: 20px;
-        }
-        .notification-btn {
-          position: relative;
-          background: none;
-          border: none;
-          color: white;
-          cursor: pointer;
-          padding: 8px;
-          border-radius: 50%;
-          transition: var(--transition);
-        }
-        .notification-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-        .badge {
-          position: absolute;
-          top: 0;
-          right: 0;
-          background: var(--danger);
-          color: white;
-          font-size: 10px;
-          padding: 2px 4px;
-          border-radius: 10px;
         }
         .user-menu {
           display: flex;

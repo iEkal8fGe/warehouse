@@ -2,6 +2,9 @@
 import Login from './pages/Login';
 import { AdminLayout } from './components/layout/AdminLayout';
 import Users from './pages/admin/Users';
+import Warehouses from "./pages/admin/Warehouses.tsx";
+import Products from "./pages/admin/Products.tsx";
+import Orders from './pages/admin/Orders';
 
 function App() {
   const path = window.location.pathname;
@@ -41,8 +44,11 @@ function App() {
   if (path.startsWith('/admin')) {
     return (
       <AdminLayout>
+        {/* TODO: Add dashboard route */}
         {path === '/admin/users' && <Users />}
-        {/* Другие страницы добавим позже */}
+        {path === '/admin/warehouses' && <Warehouses />}
+        {path === '/admin/products' && <Products />}
+        {path === '/admin/orders' && <Orders />}
       </AdminLayout>
     );
   }
