@@ -31,7 +31,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <div className="logo">
-            {!collapsed && <span>Warehouse MS</span>}
+            {!collapsed && <span>Warehouse</span>}
           </div>
           <button
             className="collapse-btn"

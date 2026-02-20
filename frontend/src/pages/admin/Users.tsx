@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Edit, Trash2, UserPlus } from 'lucide-react';
+import { Search, Edit, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Table } from '../../components/ui/Table';
@@ -115,7 +115,6 @@ const Users: React.FC = () => {
             setModalOpen(true);
           }}
         >
-          <UserPlus size={18} />
           <span>Create User</span>
         </Button>
       </div>
