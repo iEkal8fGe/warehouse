@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Edit, Trash2, UserPlus } from 'lucide-react';
+import { Search, Edit, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Table } from '../../components/ui/Table';
@@ -13,7 +13,7 @@ const mockUsers: User[] = [
   { id: 1, username: 'admin', email: 'admin@example.com', is_active: true, is_superuser: true, created_at: '2026-01-15T10:00:00Z' },
   { id: 2, username: 'ivan_sklad', email: 'ivan@example.com', is_active: true, is_superuser: false, warehouse_id: 1, created_at: '2026-01-20T14:30:00Z' },
   { id: 3, username: 'petr_sklad', email: 'petr@example.com', is_active: true, is_superuser: false, warehouse_id: 2, created_at: '2026-01-25T09:15:00Z' },
-  { id: 4, username: 'anna_manager', email: 'anna@example.com', is_active: false, is_superuser: false, warehouse_id: 1, created_at: '2026-02-01T11:45:00Z' },
+  { id: 4, username: 'swat_manager', email: 'swat@example.com', is_active: false, is_superuser: false, warehouse_id: 1, created_at: '2026-02-01T11:45:00Z' },
   { id: 5, username: 'supervisor', email: 'super@example.com', is_active: true, is_superuser: true, created_at: '2026-02-05T16:20:00Z' },
   { id: 6, username: 'maria', email: 'maria@example.com', is_active: true, is_superuser: false, warehouse_id: 3, created_at: '2026-02-10T13:10:00Z' },
 ];
@@ -35,7 +35,7 @@ const Users: React.FC = () => {
   const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Вы уверены, что хотите удалить этого пользователя?')) {
+    if (window.confirm('Are you sure want to delete this user?')) {
       setUsers(users.filter(u => u.id !== id));
     }
   };
@@ -54,7 +54,7 @@ const Users: React.FC = () => {
       title: 'Status',
       render: (value: boolean) => (
         <span className={`badge ${value ? 'badge-success' : 'badge-danger'}`}>
-          {value ? 'Активен' : 'Неактивен'}
+          {value ? 'Active' : 'Inactive'}
         </span>
       ),
     },
@@ -70,12 +70,12 @@ const Users: React.FC = () => {
     {
       key: 'warehouse_id',
       title: 'Warehouse',
-      render: (value?: number) => value ? `Склад ${value}` : '—',
+      render: (value?: number) => value ? `Warehouse ${value}` : '—',
     },
     {
       key: 'created_at',
       title: 'Date created',
-      render: (value: string) => new Date(value).toLocaleDateString('ru-RU'),
+      render: (value: string) => new Date(value).toLocaleDateString('en-US'),
     },
     {
       key: 'actions',
@@ -115,7 +115,6 @@ const Users: React.FC = () => {
             setModalOpen(true);
           }}
         >
-          <UserPlus size={18} />
           <span>Create User</span>
         </Button>
       </div>
@@ -154,7 +153,7 @@ const Users: React.FC = () => {
           setModalOpen(false);
           setEditingUser(null);
         }}
-        title={editingUser ? 'Редактировать пользователя' : 'Создать пользователя'}
+        title={editingUser ? 'Edit user' : 'Create user'}
         footer={
           <>
             <Button
@@ -164,10 +163,10 @@ const Users: React.FC = () => {
                 setEditingUser(null);
               }}
             >
-              Отмена
+              Cancel
             </Button>
             <Button variant="primary" type="submit" form="user-form">
-              {editingUser ? 'Сохранить' : 'Создать'}
+              {editingUser ? 'Save' : 'Submit'}
             </Button>
           </>
         }
@@ -175,38 +174,38 @@ const Users: React.FC = () => {
         {/* TODO: API Post here */}
         <form id="user-form" className="user-form">
           <div className="form-group">
-            <label>Имя пользователя</label>
+            <label>Username</label>
             <Input
               defaultValue={editingUser?.username}
-              placeholder="Введите имя пользователя"
+              placeholder="Enter the username"
             />
           </div>
           {!editingUser && (
             <div className="form-group">
-              <label>Пароль</label>
+              <label>Password</label>
               <Input
                 type="password"
-                placeholder="Введите пароль"
+                placeholder="Enter the password"
               />
             </div>
           )}
           <div className="form-group">
-            <label>Склад</label>
+            <label>Warehouse</label>
             <select className="select">
-              <option value="">Не привязан</option>
-              <option value="1">Склад 1 (Москва)</option>
-              <option value="2">Склад 2 (СПб)</option>
-              <option value="3">Склад 3 (Казань)</option>
+              <option value="">Not assigned</option>
+              <option value="1">California warehouse</option>
+              <option value="2">Illinois wh</option>
+              <option value="3">New york main</option>
             </select>
           </div>
           <div className="checkbox-group">
             <label className="checkbox">
               <input type="checkbox" defaultChecked={editingUser?.is_active} />
-              <span>Активен</span>
+              <span>Is active</span>
             </label>
             <label className="checkbox">
               <input type="checkbox" defaultChecked={editingUser?.is_superuser} />
-              <span>Администратор</span>
+              <span>Is Admin</span>
             </label>
           </div>
         </form>
@@ -217,40 +216,7 @@ const Users: React.FC = () => {
           display: flex;
           flex-direction: column;
           gap: 24px;
-        }
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .page-header h2 {
-          color: white;
-          margin: 0;
-        }
-        .filters-card {
-          padding: 16px;
-        }
-        .filters {
-          display: flex;
-          gap: 16px;
-          align-items: center;
-        }
-        .search-wrapper {
-          position: relative;
-          flex: 1;
-        }
-        .search-icon {
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: rgba(255, 255, 255, 0.5);
-          z-index: 1;
-        }
-        .search-input input {
-          padding-left: 40px;
-        }
-        
+        }        
         .actions {
           display: flex;
           gap: 8px;
@@ -268,17 +234,6 @@ const Users: React.FC = () => {
         .form-group label {
           color: white;
           font-weight: 500;
-        }
-        .select {
-          padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: var(--radius-sm);
-          color: white;
-          font-size: 1rem;
-        }
-        .select option {
-          background: #333;
         }
         .checkbox-group {
           display: flex;

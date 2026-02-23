@@ -11,65 +11,38 @@ import type { Warehouse } from '../../types';
 const mockWarehouses: Warehouse[] = [
   {
     id: 1,
-    name: 'Главный склад',
-    state: 'Москва',
-    city: 'Москва',
+    name: 'Main California',
+    state: 'California',
+    city: 'Denver',
     is_active: true,
-    description: 'Основной склад в Москве',
+    description: '',
     users: [1, 2]
   },
   {
     id: 2,
-    name: 'Северный склад',
-    state: 'Ленинградская область',
-    city: 'Санкт-Петербург',
+    name: 'North Carolina',
+    state: 'North Carolina',
+    city: 'VANKouver',
     is_active: true,
-    description: 'Филиал в Санкт-Петербурге',
+    description: '',
     users: [3]
   },
   {
     id: 3,
-    name: 'Южный склад',
-    state: 'Краснодарский край',
-    city: 'Краснодар',
+    name: 'Florida WH',
+    state: 'Philadelphia',
+    city: 'Florida',
     is_active: true,
-    description: 'Южный филиал',
+    description: '',
     users: []
   },
   {
     id: 4,
-    name: 'Западный склад',
-    state: 'Калининградская область',
-    city: 'Калининград',
+    name: 'New Yourk wh',
+    state: 'New York',
+    city: 'New York',
     is_active: false,
-    description: 'Временно закрыт',
-    users: []
-  },
-  {
-    id: 5,
-    name: 'Восточный склад',
-    state: 'Новосибирская область',
-    city: 'Новосибирск',
-    is_active: true,
-    description: 'Склад в Новосибирске',
-    users: [4, 5]
-  },
-  {
-    id: 6,
-    name: 'Татарстан склад',
-    state: 'Республика Татарстан',
-    city: 'Казань',
-    is_active: true,
-    description: 'Склад в Казани',
-    users: [6]
-  },
-  {
-    id: 7,
-    name: 'Уральский склад',
-    state: 'Свердловская область',
-    city: 'Екатеринбург',
-    is_active: true,
-    description: 'Склад в Екатеринбурге',
+    description: 'Temporarily disabled',
     users: []
   },
 ];
@@ -92,7 +65,7 @@ const Warehouses: React.FC = () => {
   const paginatedWarehouses = filteredWarehouses.slice((page - 1) * pageSize, page * pageSize);
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Вы уверены, что хотите удалить этот склад?')) {
+    if (window.confirm('Are you sure want to delete this warehouse?')) {
       setWarehouses(warehouses.filter(w => w.id !== id));
     }
   };
@@ -133,17 +106,17 @@ const Warehouses: React.FC = () => {
       width: '100px',
       render: (value: boolean) => (
         <span className={`badge ${value ? 'badge-success' : 'badge-danger'}`}>
-          {value ? 'Активен' : 'Неактивен'}
+          {value ? 'Active' : 'Disabled'}
         </span>
       ),
     },
     {
       key: 'Employee',
-      title: 'Сотрудники',
+      title: 'Employees',
       width: '100px',
       render: (_: any, record: Warehouse) => (
-        <span className="badge badge-info">
-          {getEmployeeCount(record)} чел.
+        <span className="badge badge-warning">
+          {getEmployeeCount(record)} emp.
         </span>
       ),
     },
@@ -184,7 +157,7 @@ const Warehouses: React.FC = () => {
   return (
     <div className="warehouses-page">
       <div className="page-header">
-        <h2>Управление складами</h2>
+        <h2>Manage warehouses</h2>
         <Button
           variant="primary"
           onClick={() => {
@@ -201,7 +174,7 @@ const Warehouses: React.FC = () => {
           <div className="search-wrapper">
             <Search size={18} className="search-icon" />
             <Input
-              placeholder="Поиск по названию или городу..."
+              placeholder="Search by name or city"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -230,7 +203,7 @@ const Warehouses: React.FC = () => {
           setModalOpen(false);
           setEditingWarehouse(null);
         }}
-        title={editingWarehouse ? 'Редактировать склад' : 'Создать склад'}
+        title={editingWarehouse ? 'Edit warehouse' : 'Create warehouse'}
         footer={
           <>
             <Button
@@ -240,46 +213,46 @@ const Warehouses: React.FC = () => {
                 setEditingWarehouse(null);
               }}
             >
-              Отмена
+              Cancel
             </Button>
             <Button variant="primary" type="submit" form="warehouse-form">
-              {editingWarehouse ? 'Сохранить' : 'Создать'}
+              {editingWarehouse ? 'Save' : 'Submit'}
             </Button>
           </>
         }
       >
         <form id="warehouse-form" className="warehouse-form">
           <div className="form-group">
-            <label>Название склада</label>
+            <label>Warehouse title</label>
             <Input
               defaultValue={editingWarehouse?.name}
-              placeholder="Введите название склада"
+              placeholder="Enter warehouse title"
             />
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Город</label>
+              <label>State</label>
               <Input
-                defaultValue={editingWarehouse?.city}
-                placeholder="Введите город"
+                defaultValue={editingWarehouse?.state}
+                placeholder="Enter the state/region"
               />
             </div>
             <div className="form-group">
-              <label>Область/Регион</label>
+              <label>City</label>
               <Input
-                defaultValue={editingWarehouse?.state}
-                placeholder="Введите регион"
+                defaultValue={editingWarehouse?.city}
+                placeholder="Enter the city"
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label>Описание</label>
+            <label>Description</label>
             <textarea
               className="textarea"
               defaultValue={editingWarehouse?.description}
-              placeholder="Введите описание склада"
+              placeholder="Enter description"
               rows={3}
             />
           </div>
@@ -298,74 +271,6 @@ const Warehouses: React.FC = () => {
           display: flex;
           flex-direction: column;
           gap: 24px;
-        }
-
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .page-header h2 {
-          color: white;
-          margin: 0;
-        }
-
-        .filters-card {
-          padding: 16px;
-        }
-
-        .filters {
-          display: flex;
-          gap: 16px;
-          align-items: center;
-        }
-
-        .search-wrapper {
-          position: relative;
-          flex: 1;
-        }
-
-        .search-icon {
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: rgba(255, 255, 255, 0.5);
-          z-index: 1;
-        }
-
-        .search-input input {
-          padding-left: 40px;
-        }
-
-        .badge {
-          display: inline-block;
-          min-width: 80px;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 500;
-          text-align: center;
-          white-space: nowrap;
-        }
-
-        .badge-success {
-          background: rgba(16, 185, 129, 0.2);
-          color: #10b981;
-          border: 1px solid #10b981;
-        }
-
-        .badge-danger {
-          background: rgba(239, 68, 68, 0.2);
-          color: #ef4444;
-          border: 1px solid #ef4444;
-        }
-
-        .badge-info {
-          background: rgba(59, 130, 246, 0.2);
-          color: #3b82f6;
-          border: 1px solid #3b82f6;
         }
 
         .actions {
@@ -416,25 +321,6 @@ const Warehouses: React.FC = () => {
         .textarea:focus {
           outline: none;
           border-color: var(--primary);
-        }
-
-        .select {
-          padding: 8px;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: var(--radius-sm);
-          color: white;
-          font-size: 1rem;
-          min-height: 120px;
-        }
-
-        .select option {
-          padding: 8px;
-          background: #1f2937;
-        }
-
-        .select option:checked {
-          background: var(--primary);
         }
 
         .checkbox-group {

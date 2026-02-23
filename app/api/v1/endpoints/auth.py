@@ -41,4 +41,5 @@ def login_access_token(
             subject=user_obj.username, expires_delta=access_token_expires
         ),
         "token_type": "bearer",
+        "role": "admin" if user_obj.is_superuser else "employee"
     }

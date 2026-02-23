@@ -30,7 +30,8 @@ export interface Product {
 export interface OrderItem {
   id: number;
   order_id: number;
-  product_id: number;
+  product_id: number;   // TODO: merge into Product obj
+  product_name?: string; // TODO: merge into Product obj
   quantity: number;
 }
 
@@ -49,4 +50,25 @@ export interface Order {
   updated_at: string;
   shipped_at: string | null;
   items: OrderItem[];
+}
+
+export interface CartItem {
+  product_id: number;
+  product_name: string;
+  sku: string;
+  quantity: number;
+}
+
+export interface SupplyItem {
+  product_id: number;
+  product_name: string;
+  sku: string;
+  quantity: number;
+}
+
+export interface Supply {
+  id: number;
+  supply_number: string;
+  created_at: string;
+  items: SupplyItem[];
 }

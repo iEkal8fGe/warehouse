@@ -7,12 +7,8 @@ import type { Order, OrderItem } from '../../types';
 // Mock data based on your SQLAlchemy models
 const mockOrderStatuses = [
   { id: 1, name: 'New' },
-  { id: 2, name: 'Confirmed' },
-  { id: 3, name: 'Paid' },
-  { id: 4, name: 'Processing' },
-  { id: 5, name: 'Shipped' },
-  { id: 6, name: 'Delivered' },
-  { id: 7, name: 'Cancelled' },
+  { id: 2, name: 'Shipping' },
+  { id: 3, name: 'Delivered' }
 ];
 
 const mockWarehouses = [
@@ -22,9 +18,9 @@ const mockWarehouses = [
 ];
 
 const mockProducts = [
-  { id: 1, name: 'Dell XPS 13 Laptop', sku: 'LAP-DELL-XPS' },
-  { id: 2, name: 'Samsung 27" Monitor', sku: 'MON-SAMS-27' },
-  { id: 3, name: 'Logitech MX Keys', sku: 'KEY-LOGI-MX' },
+  { id: 1, name: 'Trenbolone 100mg', sku: 'TRE-100' },
+  { id: 2, name: 'Retatrutide 50mg', sku: 'RET-050' },
+  { id: 3, name: 'Retatrutide 25mg', sku: 'RET-025' },
   { id: 4, name: 'Logitech MX Master 3', sku: 'MOUSE-LOGI-MX' },
   { id: 5, name: 'Samsung 1TB SSD', sku: 'SSD-SAMS-1TB' },
 ];
@@ -36,11 +32,11 @@ const mockOrders: Order[] = [
     external_order_id: 'EXT-ABC-12345',
     warehouse_id: 1,
     status_id: 1,
-    postal_code: '101000',
-    country: 'Russia',
-    city: 'Moscow',
-    address: 'Tverskaya St. 12, Apt 45',
-    notes: 'Call before delivery',
+    postal_code: '240105',
+    country: 'United States',
+    city: 'New York',
+    address: 'Paper St. 12, Apt 45',
+    notes: 'Faster please',
     created_at: '2026-02-15T10:30:00Z',
     updated_at: '2026-02-15T10:30:00Z',
     shipped_at: null,
@@ -179,13 +175,9 @@ const Orders: React.FC = () => {
     if (!status) return null;
 
     const statusStyles = {
-      'New': 'badge-info',
-      'Confirmed': 'badge-primary',
-      'Paid': 'badge-success',
-      'Processing': 'badge-warning',
-      'Shipped': 'badge-primary',
-      'Delivered': 'badge-success',
-      'Cancelled': 'badge-danger',
+      'New': 'badge-danger',
+      'Shipping': 'badge-warning',
+      'Delivered': 'badge-success'
     };
 
     const style = statusStyles[status.name as keyof typeof statusStyles] || 'badge-secondary';
@@ -377,39 +369,6 @@ const Orders: React.FC = () => {
           gap: 24px;
         }
 
-        .page-header h2 {
-          color: white;
-          margin: 0;
-        }
-
-        .filters-card {
-          padding: 16px;
-        }
-
-        .filters {
-          display: flex;
-          gap: 16px;
-          align-items: center;
-        }
-
-        .search-wrapper {
-          position: relative;
-          flex: 1;
-        }
-
-        .search-icon {
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: rgba(255, 255, 255, 0.5);
-          z-index: 1;
-        }
-
-        .search-input input {
-          padding-left: 40px;
-        }
-
         .orders-table {
           width: 100%;
           overflow-x: auto;
@@ -468,52 +427,6 @@ const Orders: React.FC = () => {
         .expand-icon {
           justify-content: center;
           color: rgba(255, 255, 255, 0.5);
-        }
-
-        .badge {
-          display: inline-block;
-          min-width: 80px;
-          padding: 4px 8px;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 500;
-          text-align: center;
-        }
-
-        .badge-info {
-          background: rgba(59, 130, 246, 0.2);
-          color: #3b82f6;
-          border: 1px solid #3b82f6;
-        }
-
-        .badge-primary {
-          background: rgba(139, 92, 246, 0.2);
-          color: #8b5cf6;
-          border: 1px solid #8b5cf6;
-        }
-
-        .badge-success {
-          background: rgba(16, 185, 129, 0.2);
-          color: #10b981;
-          border: 1px solid #10b981;
-        }
-
-        .badge-warning {
-          background: rgba(245, 158, 11, 0.2);
-          color: #f59e0b;
-          border: 1px solid #f59e0b;
-        }
-
-        .badge-danger {
-          background: rgba(239, 68, 68, 0.2);
-          color: #ef4444;
-          border: 1px solid #ef4444;
-        }
-
-        .badge-secondary {
-          background: rgba(156, 163, 175, 0.2);
-          color: #9ca3af;
-          border: 1px solid #9ca3af;
         }
 
         .order-details {

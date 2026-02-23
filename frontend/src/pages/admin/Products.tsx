@@ -11,82 +11,82 @@ import type { Product } from '../../types';
 const mockProducts: Product[] = [
   {
     id: 1,
-    name: 'Ноутбук Dell XPS 13',
-    sku: 'LAP-DELL-XPS-001',
-    description: 'Ноутбук Dell XPS 13, Intel Core i7, 16GB RAM, 512GB SSD',
-    cost_price: 85000,
+    name: 'Trenbolone 100mg',
+    sku: 'TRE-100',
+    description: '??',
+    cost_price: 15,
     is_active: true
   },
   {
     id: 2,
-    name: 'Монитор Samsung 27"',
-    sku: 'MON-SAMS-27-002',
-    description: '27" изогнутый монитор, 144Hz, QHD',
-    cost_price: 32000,
+    name: 'Retatrutide 25mg',
+    sku: 'RET-25',
+    description: 'Fat burner zphc',
+    cost_price: 12,
     is_active: true
   },
   {
     id: 3,
-    name: 'Клавиатура Logitech MX Keys',
-    sku: 'KEY-LOGI-MX-003',
-    description: 'Беспроводная клавиатура для программистов',
-    cost_price: 8900,
+    name: 'Retatrutide 50mg',
+    sku: 'RET-50',
+    description: 'Fat burn zphc',
+    cost_price: 23,
     is_active: true
   },
   {
     id: 4,
-    name: 'Мышь Logitech MX Master 3',
-    sku: 'MOUSE-LOGI-MX-004',
-    description: 'Беспроводная мышь для работы',
-    cost_price: 6500,
+    name: 'Tirzepatide 50mg',
+    sku: 'TIR-50',
+    description: 'fat burn zphc',
+    cost_price: 10,
     is_active: true
   },
   {
     id: 5,
-    name: 'SSD Samsung 1TB',
-    sku: 'SSD-SAMS-1TB-005',
-    description: 'Внутренний SSD накопитель 1TB',
-    cost_price: 12000,
+    name: 'Tirzepatide 100mg',
+    sku: 'TIR-100',
+    description: 'fat burn zphc',
+    cost_price: 19,
     is_active: false
   },
   {
     id: 6,
-    name: 'Оперативная память Kingston 16GB',
-    sku: 'RAM-KING-16-006',
-    description: 'DDR4 3200MHz',
-    cost_price: 5500,
+    name: 'Primabolan 10',
+    sku: 'PRI-10',
+    description: 'prim from zphc',
+    cost_price: 30,
     is_active: true
   },
   {
     id: 7,
-    name: 'Видеокарта RTX 3060',
-    sku: 'GPU-RTX-3060-007',
-    description: '12GB GDDR6',
-    cost_price: 42000,
+    name: 'Semaglutide 50',
+    sku: 'sem-50',
+    description: 'from zphc',
+    cost_price: 17,
     is_active: true
   },
   {
     id: 8,
-    name: 'Блок питания Corsair 750W',
-    sku: 'PSU-CORS-750-008',
-    description: 'Модульный блок питания 80+ Gold',
-    cost_price: 11500,
+    name: 'Semaglutide 25',
+    sku: 'sem-25',
+    description: 'from zphc domestic',
+    cost_price: 9,
     is_active: true
   },
   {
     id: 9,
-    name: 'Корпус NZXT H510',
-    sku: 'CASE-NZXT-510-009',
-    description: 'Mid-tower корпус с боковым стеклом',
-    cost_price: 8900,
+    name: 'Testosterone MIX 250mg',
+    sku: 'TES-MIX-250',
+    description: 'from zphc domestic',
+    cost_price: 6,
     is_active: true
   },
   {
     id: 10,
-    name: 'Внешний HDD 2TB',
-    sku: 'HDD-EXT-2TB-010',
-    description: 'Внешний жесткий диск 2TB USB 3.0',
-    cost_price: 5800,
+    name: 'Boldenone Undecylenate 250',
+    sku: 'BOL-UND-250',
+    description: 'from zphc domestic',
+    cost_price: 25,
     is_active: true
   },
 ];
@@ -170,15 +170,13 @@ const Products: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Вы уверены, что хотите удалить этот товар?')) {
+    if (window.confirm('Are you sure, want to delete this product?')) {
       setProducts(products.filter(p => p.id !== id));
     }
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'RUB',
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -304,7 +302,7 @@ const Products: React.FC = () => {
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingProduct ? 'Редактировать товар' : 'Новый товар'}
+        title={editingProduct ? 'Edit product' : 'New product'}
         size="md"
         footer={
           <>
@@ -312,43 +310,43 @@ const Products: React.FC = () => {
               variant="secondary"
               onClick={() => setModalOpen(false)}
             >
-              Отмена
+              Cancel
             </Button>
             <Button variant="primary" type="submit" form="product-form">
-              {editingProduct ? 'Сохранить' : 'Создать'}
+              {editingProduct ? 'Save' : 'Submit'}
             </Button>
           </>
         }
       >
         <form id="product-form" className="product-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Название товара *</label>
+            <label>Title *</label>
             <Input
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Введите название товара"
+              placeholder="Enter the title"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Описание</label>
+            <label>Description</label>
             <textarea
               className="textarea"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Введите описание товара"
+              placeholder="Enter the description"
               rows={3}
             />
           </div>
 
           <div className="form-group">
-            <label>Себестоимость *</label>
+            <label>Cost price *</label>
             <Input
               type="number"
               value={formData.cost_price}
               onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
-              placeholder="Введите себестоимость"
+              placeholder="Enter cost price"
               min="0"
               step="0.01"
               required
@@ -363,7 +361,7 @@ const Products: React.FC = () => {
                 disabled
                 className="readonly"
               />
-              <small className="hint">SKU генерируется автоматически</small>
+              <small className="hint">SKU generates automatically</small>
             </div>
           )}
 
@@ -385,68 +383,6 @@ const Products: React.FC = () => {
           display: flex;
           flex-direction: column;
           gap: 24px;
-        }
-
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .page-header h2 {
-          color: white;
-          margin: 0;
-        }
-
-        .filters-card {
-          padding: 16px;
-        }
-
-        .filters {
-          display: flex;
-          gap: 16px;
-          align-items: center;
-        }
-
-        .search-wrapper {
-          position: relative;
-          flex: 1;
-        }
-
-        .search-icon {
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: rgba(255, 255, 255, 0.5);
-          z-index: 1;
-        }
-
-
-        .search-input input {
-          padding-left: 40px;
-        }
-
-        .badge {
-          display: inline-block;
-          min-width: 80px;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 500;
-          text-align: center;
-        }
-
-        .badge-success {
-          background: rgba(16, 185, 129, 0.2);
-          color: #10b981;
-          border: 1px solid #10b981;
-        }
-
-        .badge-danger {
-          background: rgba(239, 68, 68, 0.2);
-          color: #ef4444;
-          border: 1px solid #ef4444;
         }
 
         .actions {

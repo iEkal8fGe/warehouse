@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
+// UI
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+// API
+import { authAPI } from '../lib/api';
 
 interface LoginProps {
-  onLogin: (token: string) => void;
+  onLogin: (token: string) => void; //, role: 'admin' | 'employee') => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -22,15 +25,34 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setErrors({});
 
     // TODO: Заменить на реальный API запрос
-    setTimeout(() => {
-      // Моковая проверка
-      if (formData.username === 'admin' && formData.password === 'admin') {
-        onLogin('mock-token-12345');
+    try {
+      const response = await authAPI.login(formData.username, formData.password);
+      const { access_token } = response.data;
+      onLogin(access_token);
+    } catch (e: any) {
+      console.error('Login error: ', e);
+
+      if (e.response?.status === 400) {
+        setErrors({ general: 'Incorrect username or password' });
+      } else if (e.response?.status === 401) {
+        setErrors({ general: 'Unauthorized' });
       } else {
-        setErrors({ general: 'Неверное имя пользователя или пароль' });
+        setErrors({ general: 'Connection error. Please try again.' });
       }
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+    //
+    // setTimeout(() => {
+    //   if (formData.username === 'admin' && formData.password === 'admin') {
+    //     onLogin('admin-mock-token', 'admin');
+    //   } else if (formData.username === 'employee' && formData.password === 'employee') {
+    //     onLogin('employee-mock-token', 'employee');
+    //   } else {
+    //     setErrors({ general: 'Incorrect username or password' });
+    //   }
+    //   setLoading(false);
+    // }, 1000);
   };
 
   return (
@@ -38,39 +60,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="login-wrapper">
         <div className="login-left">
           <div className="brand">
-            <h1>Warehouse MS</h1>
-            <p>Система управления складом</p>
-          </div>
-
-          <div className="features">
-            <div className="feature-item">
-              <div className="feature-icon">📦</div>
-              <div>
-                <h3>Управление складом</h3>
-                <p>Полный контроль над товарами и поставками</p>
-              </div>
-            </div>
-            <div className="feature-item">
-              <div className="feature-icon">👥</div>
-              <div>
-                <h3>Командная работа</h3>
-                <p>Распределение прав между сотрудниками</p>
-              </div>
-            </div>
-            <div className="feature-item">
-              <div className="feature-icon">📊</div>
-              <div>
-                <h3>Аналитика</h3>
-                <p>Детальные отчеты и статистика</p>
-              </div>
-            </div>
+            <h1>Warehouse</h1>
+            <p>System of wh management</p>
           </div>
         </div>
 
         <div className="login-right">
           <Card className="login-card">
-            <h2 className="login-title">Добро пожаловать!</h2>
-            <p className="login-subtitle">Войдите в систему, чтобы продолжить</p>
+            <h2 className="login-title">Welcome</h2>
+            <p className="login-subtitle">Authorize to continue</p>
 
             <form onSubmit={handleSubmit} className="login-form">
               {errors.general && (
@@ -78,9 +76,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               )}
 
               <Input
-                label="Имя пользователя"
+                label="Username"
                 type="text"
-                placeholder="Введите имя пользователя"
+                placeholder="Enter username"
                 icon={<Mail size={18} />}
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -89,9 +87,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               />
 
               <Input
-                label="Пароль"
+                label="Password"
                 type="password"
-                placeholder="Введите пароль"
+                placeholder="Enter the password"
                 icon={<Lock size={18} />}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -101,9 +99,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
               <div className="form-options">
                 <label className="remember">
-                  <input type="checkbox" /> Запомнить меня
+                  <input type="checkbox" /> Remember me
                 </label>
-                <a href="#" className="forgot-password">Забыли пароль?</a>
               </div>
 
               <Button
@@ -116,16 +113,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   <span className="loading">Вход...</span>
                 ) : (
                   <>
-                    <LogIn size={18} />
-                    <span>Войти в систему</span>
+                    <span>Log in</span>
                   </>
                 )}
               </Button>
             </form>
-
-            <div className="demo-credentials">
-              <p>Демо данные: admin / admin</p>
-            </div>
           </Card>
         </div>
       </div>
@@ -159,21 +151,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         .brand p {
           font-size: 1.2rem;
           opacity: 0.9;
-        }
-        .features {
-          margin-top: 50px;
-        }
-        .feature-item {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 30px;
-          align-items: center;
-        }
-        .feature-icon {
-          font-size: 2.5rem;
-        }
-        .feature-item h3 {
-          margin-bottom: 5px;
         }
         .login-card {
           width: 100%;
@@ -211,23 +188,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           align-items: center;
           gap: 8px;
         }
-        .forgot-password {
-          color: rgba(255, 255, 255, 0.7);
-          text-decoration: none;
-          transition: var(--transition);
-        }
-        .forgot-password:hover {
-          color: white;
-        }
         .loading {
           display: flex;
           align-items: center;
           gap: 8px;
-        }
-        .demo-credentials {
-          margin-top: 30px;
-          text-align: center;
-          opacity: 0.5;
         }
         @media (max-width: 768px) {
           .login-wrapper {

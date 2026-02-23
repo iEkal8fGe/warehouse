@@ -79,7 +79,7 @@ export function Table<T extends Record<string, any>>({
           </Button>
 
           <span className="pagination-info">
-            {pagination.current} из {Math.ceil(pagination.total / pagination.pageSize)}
+            {pagination.current} of {Math.ceil(pagination.total / pagination.pageSize)}
           </span>
 
           <Button
