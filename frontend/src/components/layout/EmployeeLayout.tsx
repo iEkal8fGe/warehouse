@@ -490,3 +490,5 @@ export const EmployeeLayout: React.FC<EmployeeLayoutProps> = ({ children, user, 
     </div>
   );
 };
+
+export default EmployeeLayout;

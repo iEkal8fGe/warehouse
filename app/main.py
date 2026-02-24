@@ -16,10 +16,16 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
-
+# Но помните: allow_origins=["*"] не работает с allow_credentials=True. Для продакшна нужно явно указывать домены
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # или ["*"] для теста
+    allow_origins=[
+        "http://localhost:3000",  # Если используете порт 3000
+        "http://localhost:5173",  # Vite default port
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",  # На всякий случай
+        "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

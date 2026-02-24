@@ -1,18 +1,23 @@
 import React from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // Добавьте useLocation
 import {
   Users, Package, MapPin, ShoppingCart,
   Home, LogOut, Menu, ChevronLeft, User
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-  user: { name?: string; email?: string; role: string } | null;
-  onLogout: () => void;
-}
-
-export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, user, onLogout }) => {
+// Убираем Props - используем useAuth
+export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation(); // Для определения активного пункта меню
   const [collapsed, setCollapsed] = React.useState(false);
   const [showMobileMenu, setShowMobileMenu] = React.useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const menuItems = [
     { path: '/admin', icon: Home, label: 'Dashboard' },
@@ -40,19 +45,19 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, user, onLogo
 
         <nav className="sidebar-nav">
           {menuItems.map((item) => (
-            <a
+            <Link
               key={item.path}
-              href={item.path}
-              className={`nav-item ${window.location.pathname === item.path ? 'active' : ''}`}
+              to={item.path}
+              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
             >
               <item.icon size={20} />
               {!collapsed && <span>{item.label}</span>}
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="sidebar-footer">
-          <button className="logout-btn" onClick={onLogout}>
+          <button className="logout-btn" onClick={handleLogout}>
             <LogOut size={20} />
             {!collapsed && <span>Log out</span>}
           </button>
@@ -71,22 +76,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, user, onLogo
       {showMobileMenu && (
         <aside className="mobile-sidebar">
           <div className="mobile-sidebar-header">
-            <h2>Warehouse MS</h2>
+            <h2>Warehouse</h2>
             <button onClick={() => setShowMobileMenu(false)}>×</button>
           </div>
           <nav className="mobile-sidebar-nav">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.path}
-                href={item.path}
+                to={item.path}
                 className="mobile-nav-item"
                 onClick={() => setShowMobileMenu(false)}
               >
                 <item.icon size={20} />
                 <span>{item.label}</span>
-              </a>
+              </Link>
             ))}
-            <button className="mobile-logout-btn" onClick={onLogout}>
+            <button className="mobile-logout-btn" onClick={handleLogout}>
               <LogOut size={20} />
               <span>Log out</span>
             </button>
@@ -103,7 +108,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, user, onLogo
           <div className="header-right">
             <div className="user-menu">
               <User size={20} />
-              <span>{user?.name}</span>
+              <span>{user?.username}</span>
             </div>
           </div>
         </header>
@@ -331,3 +336,5 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, user, onLogo
     </div>
   );
 };
+
+export default AdminLayout;

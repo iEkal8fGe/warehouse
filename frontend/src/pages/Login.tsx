@@ -3,68 +3,32 @@ import { Mail, Lock } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext'; // Добавляем
 
-interface LoginProps {
-  onLogin: (token: string, role: 'admin' | 'employee') => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
+  const { login } = useAuth(); // Используем login из контекста
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setLoading(true);
-      setErrors({});
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-      try {
-        const formDataObj = new FormData();
-        formDataObj.append('username', formData.username);
-        formDataObj.append('password', formData.password);
-
-        // Указываем полный URL
-        const response = await fetch('http://127.0.0.1:8000/api/v1/auth/login', {
-          method: 'POST',
-          body: formDataObj,
-        });
-
-        // Сначала проверим статус ответа
-        if (!response.ok) {
-          const errorText = await response.text(); // Получаем текст ошибки
-          console.error('Server error response:', errorText);
-
-          try {
-            const errorData = JSON.parse(errorText);
-            setErrors({ general: errorData.detail || 'Ошибка сервера' });
-          } catch {
-            setErrors({ general: `Ошибка ${response.status}: ${response.statusText}` });
-          }
-          return;
-        }
-
-        // Проверяем, есть ли контент в ответе
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-
-        if (!responseText) {
-          setErrors({ general: 'Пустой ответ от сервера' });
-          return;
-        }
-
-        const data = JSON.parse(responseText);
-        onLogin(data.access_token, data.role);
-
-      } catch (error) {
-        console.error('Login error:', error);
-        setErrors({ general: 'Ошибка соединения с сервером' });
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      await login(formData.username, formData.password);
+      // После успешного логина useAuth обновит user, и PublicRoute сам перенаправит
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="login-container">
@@ -82,8 +46,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <p className="login-subtitle">Authorize to keep</p>
 
             <form onSubmit={handleSubmit} className="login-form">
-              {errors.general && (
-                <div className="error-message">{errors.general}</div>
+              {error && (
+                <div className="error-message">{error}</div>
               )}
 
               <Input
@@ -93,7 +57,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 icon={<Mail size={18} />}
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                error={errors.username}
                 disabled={loading}
               />
 
@@ -104,7 +67,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 icon={<Lock size={18} />}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                error={errors.password}
                 disabled={loading}
               />
 

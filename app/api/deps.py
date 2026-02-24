@@ -1,9 +1,10 @@
 from app.config import settings
+from app.models.user import User
 from app.crud.user import user
 from app.database import get_db
 from app.schemas.user import TokenPayload
 
-from fastapi import Depends, status, Security, HTTPException
+from fastapi import Depends, status, Security, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
 
 from datetime import datetime, timedelta
@@ -22,56 +23,51 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 
-def get_current_user(
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
-) -> user.model:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+async def get_token_from_cookie(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    return token
 
+
+async def get_current_user(
+        db: Session = Depends(get_db),
+        token: str = Depends(get_token_from_cookie)
+) -> User:
     try:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
         )
-
-        username = payload.get("sub")
-        print("username: ", username)
+        username: str = payload.get("sub")
         if username is None:
-            raise credentials_exception
-
-    except jwt.ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials"
+            )
+    except jwt.JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Invalid authentication credentials"
         )
-    except jwt.InvalidTokenError:
-        raise credentials_exception
 
-    user_obj = user.get_by_username(db, username=username)
-    if user_obj is None:
-        raise credentials_exception
-
-    if not user_obj.is_active:
+    current_user = db.query(User).filter(User.username == username).first()
+    if current_user is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
         )
 
-    return user_obj
+    return current_user
 
 
-def get_current_active_user(
-        current_user: user.model = Depends(get_current_user),
-) -> user.model:
-    """
-    Is user active
-    """
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
     if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -80,31 +76,20 @@ def get_current_active_user(
     return current_user
 
 
-def get_current_active_superuser(
-        current_user: user.model = Depends(get_current_user),
-) -> user.model:
-    """
-    Check if superuser
-    """
-    if not current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
-        )
-
-    if not hasattr(current_user, 'is_superuser'):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="The user doesn't have enough privileges"
-        )
-
+async def get_current_active_superuser(
+    current_user: User = Depends(get_current_active_user),
+) -> User:
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="The user doesn't have enough privileges"
+            detail="Not enough permissions"
         )
-
     return current_user
+
+
+def is_superuser(current_user: User) -> bool:
+    return current_user.is_superuser
+
 
 
 def get_current_user_optional(
