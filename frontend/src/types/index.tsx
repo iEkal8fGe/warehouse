@@ -1,7 +1,7 @@
 export interface User {
   id: number;
+  role: 'admin' | 'employee';
   username: string;
-  email: string;
   is_active: boolean;
   is_superuser: boolean;
   warehouse_id?: number;

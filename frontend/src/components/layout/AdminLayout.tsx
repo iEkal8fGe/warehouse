@@ -6,9 +6,11 @@ import {
 
 interface AdminLayoutProps {
   children: React.ReactNode;
+  user: { name?: string; email?: string; role: string } | null;
+  onLogout: () => void;
 }
 
-export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, user, onLogout }) => {
   const [collapsed, setCollapsed] = React.useState(false);
   const [showMobileMenu, setShowMobileMenu] = React.useState(false);
 
@@ -19,11 +21,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { path: '/admin/products', icon: Package, label: 'Products' },
     { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
   ];
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-  };
 
   return (
     <div className="admin-layout">
@@ -55,7 +52,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="logout-btn" onClick={handleLogout}>
+          <button className="logout-btn" onClick={onLogout}>
             <LogOut size={20} />
             {!collapsed && <span>Log out</span>}
           </button>
@@ -89,9 +86,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <span>{item.label}</span>
               </a>
             ))}
-            <button className="mobile-logout-btn" onClick={handleLogout}>
+            <button className="mobile-logout-btn" onClick={onLogout}>
               <LogOut size={20} />
-              <span>Выйти</span>
+              <span>Log out</span>
             </button>
           </nav>
         </aside>
@@ -106,7 +103,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           <div className="header-right">
             <div className="user-menu">
               <User size={20} />
-              <span>Admin</span>
+              <span>{user?.name}</span>
             </div>
           </div>
         </header>

@@ -13,9 +13,11 @@ import {
 
 interface EmployeeLayoutProps {
   children: React.ReactNode;
+  user: { name?: string; email?: string; role: string } | null;
+  onLogout: () => void;
 }
 
-export const EmployeeLayout: React.FC<EmployeeLayoutProps> = ({ children }) => {
+export const EmployeeLayout: React.FC<EmployeeLayoutProps> = ({ children, user, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -25,12 +27,6 @@ export const EmployeeLayout: React.FC<EmployeeLayoutProps> = ({ children }) => {
     { name: 'Inventory', href: '/employee/inventory', icon: Package },
     { name: 'Supplies', href: '/employee/supplies', icon: Truck },
   ];
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    window.location.href = '/login';
-  };
 
   return (
     <div className="employee-layout">
@@ -72,7 +68,7 @@ export const EmployeeLayout: React.FC<EmployeeLayoutProps> = ({ children }) => {
             <Settings size={20} />
             <span>Settings</span>
           </a>
-          <button onClick={handleLogout} className="nav-item">
+          <button onClick={onLogout} className="nav-item">
             <LogOut size={20} />
             <span>Logout</span>
           </button>
@@ -102,7 +98,7 @@ export const EmployeeLayout: React.FC<EmployeeLayoutProps> = ({ children }) => {
                 <div className="user-avatar">
                   <User size={20} />
                 </div>
-                <span className="user-name">John Doe</span>
+                <span className="user-name">{user?.name}</span>
               </button>
             </div>
           </div>

@@ -1,17 +1,17 @@
-from datetime import datetime, timedelta
-from typing import Optional
-
-from fastapi import Depends, HTTPException, status, Security, HTTPException
-from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
-import jwt
-from jwt import InvalidTokenError, ExpiredSignatureError, DecodeError
-from pydantic import ValidationError
-from sqlalchemy.orm import Session
-
 from app.config import settings
 from app.crud.user import user
 from app.database import get_db
 from app.schemas.user import TokenPayload
+
+from fastapi import Depends, status, Security, HTTPException
+from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
+
+from datetime import datetime, timedelta
+from typing import Optional
+
+import jwt
+from pydantic import ValidationError
+from sqlalchemy.orm import Session
 
 
 # - - - INTERNAL API DEPENDENCIES - - - #
@@ -70,7 +70,7 @@ def get_current_active_user(
         current_user: user.model = Depends(get_current_user),
 ) -> user.model:
     """
-    Проверяет, что пользователь активен
+    Is user active
     """
     if not current_user.is_active:
         raise HTTPException(
@@ -84,7 +84,7 @@ def get_current_active_superuser(
         current_user: user.model = Depends(get_current_user),
 ) -> user.model:
     """
-    Проверяет, что пользователь суперюзер
+    Check if superuser
     """
     if not current_user.is_active:
         raise HTTPException(
@@ -92,7 +92,6 @@ def get_current_active_superuser(
             detail="Inactive user"
         )
 
-    # Проверяем наличие атрибута is_superuser или role
     if not hasattr(current_user, 'is_superuser'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -113,8 +112,7 @@ def get_current_user_optional(
         token: Optional[str] = Depends(oauth2_scheme),
 ) -> Optional[user.model]:
     """
-    Опциональный dependency - возвращает пользователя если токен валидный,
-    иначе возвращает None
+    Ret user if token-s valid
     """
     if token is None:
         return None
@@ -130,7 +128,7 @@ def create_access_token(
         expires_delta: Optional[int] = None
 ) -> str:
     """
-    Создает JWT access token
+    Create JWT access token
     """
     to_encode = data.copy()
 
@@ -161,7 +159,7 @@ def verify_token(token: str) -> Optional[TokenPayload]:
             algorithms=[settings.ALGORITHM]
         )
         return TokenPayload(**payload)
-    except (InvalidTokenError, ValidationError):
+    except (jwt.InvalidTokenError, ValidationError):
         return None
 
 

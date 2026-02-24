@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 
 interface LoginProps {
-  onLogin: (token: string) => void;
+  onLogin: (token: string, role: 'admin' | 'employee') => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -17,60 +17,69 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrors({});
+      e.preventDefault();
+      setLoading(true);
+      setErrors({});
 
-    // TODO: Заменить на реальный API запрос
-    setTimeout(() => {
-      // Моковая проверка
-      if (formData.username === 'admin' && formData.password === 'admin') {
-        onLogin('mock-token-12345');
-      } else {
-        setErrors({ general: 'Неверное имя пользователя или пароль' });
+      try {
+        const formDataObj = new FormData();
+        formDataObj.append('username', formData.username);
+        formDataObj.append('password', formData.password);
+
+        // Указываем полный URL
+        const response = await fetch('http://127.0.0.1:8000/api/v1/auth/login', {
+          method: 'POST',
+          body: formDataObj,
+        });
+
+        // Сначала проверим статус ответа
+        if (!response.ok) {
+          const errorText = await response.text(); // Получаем текст ошибки
+          console.error('Server error response:', errorText);
+
+          try {
+            const errorData = JSON.parse(errorText);
+            setErrors({ general: errorData.detail || 'Ошибка сервера' });
+          } catch {
+            setErrors({ general: `Ошибка ${response.status}: ${response.statusText}` });
+          }
+          return;
+        }
+
+        // Проверяем, есть ли контент в ответе
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
+        if (!responseText) {
+          setErrors({ general: 'Пустой ответ от сервера' });
+          return;
+        }
+
+        const data = JSON.parse(responseText);
+        onLogin(data.access_token, data.role);
+
+      } catch (error) {
+        console.error('Login error:', error);
+        setErrors({ general: 'Ошибка соединения с сервером' });
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 1000);
-  };
+    };
 
   return (
     <div className="login-container">
       <div className="login-wrapper">
         <div className="login-left">
           <div className="brand">
-            <h1>Warehouse MS</h1>
-            <p>Система управления складом</p>
-          </div>
-
-          <div className="features">
-            <div className="feature-item">
-              <div className="feature-icon">📦</div>
-              <div>
-                <h3>Управление складом</h3>
-                <p>Полный контроль над товарами и поставками</p>
-              </div>
-            </div>
-            <div className="feature-item">
-              <div className="feature-icon">👥</div>
-              <div>
-                <h3>Командная работа</h3>
-                <p>Распределение прав между сотрудниками</p>
-              </div>
-            </div>
-            <div className="feature-item">
-              <div className="feature-icon">📊</div>
-              <div>
-                <h3>Аналитика</h3>
-                <p>Детальные отчеты и статистика</p>
-              </div>
-            </div>
+            <h1>Warehouse</h1>
+            <p>Management System</p>
           </div>
         </div>
 
         <div className="login-right">
           <Card className="login-card">
-            <h2 className="login-title">Добро пожаловать!</h2>
-            <p className="login-subtitle">Войдите в систему, чтобы продолжить</p>
+            <h2 className="login-title">Welcome</h2>
+            <p className="login-subtitle">Authorize to keep</p>
 
             <form onSubmit={handleSubmit} className="login-form">
               {errors.general && (
@@ -78,9 +87,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               )}
 
               <Input
-                label="Имя пользователя"
+                label="Username"
                 type="text"
-                placeholder="Введите имя пользователя"
+                placeholder="Enter the username"
                 icon={<Mail size={18} />}
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -89,9 +98,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               />
 
               <Input
-                label="Пароль"
+                label="Password"
                 type="password"
-                placeholder="Введите пароль"
+                placeholder="Enter the password"
                 icon={<Lock size={18} />}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -101,9 +110,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
               <div className="form-options">
                 <label className="remember">
-                  <input type="checkbox" /> Запомнить меня
+                  <input type="checkbox" /> Remember me
                 </label>
-                <a href="#" className="forgot-password">Забыли пароль?</a>
               </div>
 
               <Button
@@ -113,19 +121,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 disabled={loading}
               >
                 {loading ? (
-                  <span className="loading">Вход...</span>
+                  <span className="loading">Logining</span>
                 ) : (
                   <>
-                    <LogIn size={18} />
-                    <span>Войти в систему</span>
+                    <span>Log in</span>
                   </>
                 )}
               </Button>
             </form>
-
-            <div className="demo-credentials">
-              <p>Демо данные: admin / admin</p>
-            </div>
           </Card>
         </div>
       </div>
@@ -159,21 +162,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         .brand p {
           font-size: 1.2rem;
           opacity: 0.9;
-        }
-        .features {
-          margin-top: 50px;
-        }
-        .feature-item {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 30px;
-          align-items: center;
-        }
-        .feature-icon {
-          font-size: 2.5rem;
-        }
-        .feature-item h3 {
-          margin-bottom: 5px;
         }
         .login-card {
           width: 100%;
@@ -211,23 +199,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           align-items: center;
           gap: 8px;
         }
-        .forgot-password {
-          color: rgba(255, 255, 255, 0.7);
-          text-decoration: none;
-          transition: var(--transition);
-        }
-        .forgot-password:hover {
-          color: white;
-        }
         .loading {
           display: flex;
           align-items: center;
           gap: 8px;
-        }
-        .demo-credentials {
-          margin-top: 30px;
-          text-align: center;
-          opacity: 0.5;
         }
         @media (max-width: 768px) {
           .login-wrapper {
