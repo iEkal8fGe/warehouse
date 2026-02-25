@@ -1,3 +1,4 @@
+# app/api/deps.py
 from app.config import settings
 from app.models.user import User
 from app.crud.user import user
@@ -10,64 +11,92 @@ from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
 from datetime import datetime, timedelta
 from typing import Optional
 
-import jwt
+import jwt  # Это pyjwt, правильно
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
-
 
 # - - - INTERNAL API DEPENDENCIES - - - #
 
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login"
+    tokenUrl=f"{settings.API_V1_STR}/auth/login",
+    auto_error=False  # Не кидаем ошибку автоматически
 )
 
 
-async def get_token_from_cookie(request: Request):
+async def get_token_from_cookie(request: Request) -> Optional[str]:
+    """Получаем токен из cookie"""
     token = request.cookies.get("access_token")
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
+    if token and token.startswith("Bearer "):
+        token = token[7:]  # Убираем "Bearer " если есть
+    return token
+
+
+async def get_token_from_header(token: str = Depends(oauth2_scheme)) -> Optional[str]:
+    """Получаем токен из заголовка Authorization"""
     return token
 
 
 async def get_current_user(
-        db: Session = Depends(get_db),
-        token: str = Depends(get_token_from_cookie)
+    db: Session = Depends(get_db),
+    request: Request = None,
+    token_header: str = Depends(oauth2_scheme)
 ) -> User:
+    # 1. Пробуем токен из cookie
+    token = None
+    if request:
+        cookie_token = request.cookies.get("access_token")
+        if cookie_token:
+            if cookie_token.startswith("Bearer "):
+                cookie_token = cookie_token[7:]
+            token = cookie_token
+
+    # 2. Если нет, пробуем из заголовка
+    if not token and token_header:
+        token = token_header
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials"
-            )
-    except jwt.JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
-        )
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
-    current_user = db.query(User).filter(User.username == username).first()
-    if current_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
-        )
-
+    current_user = user.get_by_username(User.username)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="User not found")
     return current_user
 
 
+
+async def get_current_user_optional(
+        db: Session = Depends(get_db),
+        request: Request = None,
+        token_header: Optional[str] = Depends(oauth2_scheme)
+) -> Optional[User]:
+    """
+    Опциональное получение пользователя (не кидает ошибку если нет токена)
+    """
+    try:
+        return await get_current_user(db, request, token_header)
+    except HTTPException:
+        return None
+
+
 async def get_current_active_user(
-    current_user: User = Depends(get_current_user),
+        current_user: User = Depends(get_current_user),
 ) -> User:
+    """Получение активного пользователя"""
     if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -77,8 +106,9 @@ async def get_current_active_user(
 
 
 async def get_current_active_superuser(
-    current_user: User = Depends(get_current_active_user),
+        current_user: User = Depends(get_current_active_user),
 ) -> User:
+    """Получение суперпользователя"""
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -87,30 +117,9 @@ async def get_current_active_superuser(
     return current_user
 
 
-def is_superuser(current_user: User) -> bool:
-    return current_user.is_superuser
-
-
-
-def get_current_user_optional(
-        db: Session = Depends(get_db),
-        token: Optional[str] = Depends(oauth2_scheme),
-) -> Optional[user.model]:
-    """
-    Ret user if token-s valid
-    """
-    if token is None:
-        return None
-
-    try:
-        return get_current_user(db, token)
-    except HTTPException:
-        return None
-
-
 def create_access_token(
         data: dict,
-        expires_delta: Optional[int] = None
+        expires_delta: Optional[timedelta] = None
 ) -> str:
     """
     Create JWT access token
@@ -118,9 +127,9 @@ def create_access_token(
     to_encode = data.copy()
 
     if expires_delta:
-        expire = datetime.now() + timedelta(seconds=expires_delta)
+        expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.now() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=15)
 
     to_encode.update({"exp": expire})
 
@@ -180,6 +189,5 @@ async def verify_external_api_key(
         )
 
     return api_key
-
 
 # - - - /END EXTERNAL API DEPENDENCIES - - - #

@@ -1,6 +1,8 @@
+# app/api/v1/endpoints/auth.py (исправленный)
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.crud.user import user
@@ -10,7 +12,6 @@ from app.schemas.user import UserBase
 
 from datetime import timedelta
 from typing import Any
-
 
 router = APIRouter()
 
@@ -44,36 +45,48 @@ def login_access_token(
         expires_delta=access_token_expires
     )
 
-    # HttpOnly Set cookie for jwt
+    # ВАЖНО: Добавляем токен и в cookie, и в ответ
     response.set_cookie(
         key="access_token",
-        value=access_token,
-        httponly=True,  # Недоступен из JavaScript
-        secure=False,   # secure=True,  # Только по HTTPS (в продакшне)
-        samesite="lax",  # Защита от CSRF
+        value=f"Bearer {access_token}",  # Добавляем Bearer для совместимости
+        httponly=True,
+        secure=False,  # В продакшне True
+        samesite="lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",  # Доступен для всех путей
+        path="/",
     )
 
-    return {
+    # Возвращаем JSON с токеном и пользователем
+    return JSONResponse({
+        "access_token": access_token,
+        "token_type": "bearer",
         "user": {
             "id": user_obj.id,
             "username": user_obj.username,
             "role": "admin" if user_obj.is_superuser else "employee",
-            "warehouse_id": user_obj.warehouse_id
+            "warehouse_id": user_obj.warehouse_id,
+            "is_active": user_obj.is_active,
+            "is_superuser": user_obj.is_superuser,
+            "created_at": user_obj.created_at.isoformat() if user_obj.created_at else None
         }
-    }
+    })
 
-
-@router.get("/me", response_model=UserBase)
+@router.get("/me")
 def read_users_me(
-        current_user: UserBase = Depends(deps.get_current_user),
+        current_user = Depends(deps.get_current_user),
 ) -> Any:
     """
     Get current user
     """
-    return current_user
-
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "role": "admin" if current_user.is_superuser else "employee",
+        "warehouse_id": current_user.warehouse_id,
+        "is_active": current_user.is_active,
+        "is_superuser": current_user.is_superuser,
+        "created_at": current_user.created_at.isoformat() if current_user.created_at else None
+    }
 
 @router.post("/logout")
 def logout(

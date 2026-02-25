@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom'; // Добавьте useLocation
+import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom'; // Добавьте useLocation
 import {
   Users, Package, MapPin, ShoppingCart,
   Home, LogOut, Menu, ChevronLeft, User
@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 // Убираем Props - используем useAuth
-export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AdminLayout: React.FC<{ children: React.ReactNode }> = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation(); // Для определения активного пункта меню
@@ -114,7 +114,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
         </header>
 
         <div className="content">
-          {children}
+          <Outlet />
         </div>
       </main>
 
@@ -332,6 +332,86 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
             display: block;
           }
         }
+        
+        /* Headers */
+        .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .page-header h2 {
+          color: white;
+          margin: 0;
+        }
+        
+        /* Search styles */
+        .search-wrapper {
+          position: relative;
+          flex: 1;
+        }
+        .search-icon {
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: rgba(255, 255, 255, 0.5);
+          z-index: 1;
+        }
+        .search-input input {
+          padding-left: 40px;
+        }
+        
+        /* Select fields */
+        .select {
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: var(--radius-sm);
+          color: white;
+          font-size: 1rem;
+        }
+        .select option {
+          background: #333;
+        }
+        .select option:checked {
+          background: var(--primary);
+        }
+        /* End Select field */
+        
+        /* Badges */
+        .badge {
+          display: inline-block;
+          min-width: 80px;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 500;
+          text-align: center;
+          white-space: nowrap;
+        }
+
+        .badge-success {
+          background: rgba(16, 185, 129, 0.2);
+          color: #10b981;
+          border: 1px solid #10b981;
+        }
+        .badge-danger {
+          background: rgba(239, 68, 68, 0.2);
+          color: #ef4444;
+          border: 1px solid #ef4444;
+        }
+        .badge-info {
+          background: rgba(59, 130, 246, 0.2);
+          color: #3b82f6;
+          border: 1px solid #3b82f6;
+        }
+
+        .badge-warning {
+          background: rgba(245, 158, 11, 0.2);
+          color: #f59e0b;
+          border: 1px solid #f59e0b;
+        }
+        /* End Badges */
       `}</style>
     </div>
   );

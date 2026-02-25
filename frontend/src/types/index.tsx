@@ -1,3 +1,9 @@
+export interface AuthState {
+  user: User | null
+  isLoading: boolean
+  isAuthenticated: boolean
+}
+
 export interface User {
   id: number;
   role: 'admin' | 'employee';
