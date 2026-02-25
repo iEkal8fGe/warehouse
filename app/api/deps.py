@@ -72,10 +72,10 @@ async def get_current_user(
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    current_user = user.get_by_username(User.username)
-    if not current_user:
+    db_user = user.get_by_username(db, username=User.username)
+    if not db_user:
         raise HTTPException(status_code=401, detail="User not found")
-    return current_user
+    return db_user
 
 
 
