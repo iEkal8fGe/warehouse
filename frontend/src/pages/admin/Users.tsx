@@ -352,18 +352,19 @@ const Users: React.FC = () => {
   }, []);
 
   const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await usersAPI.getAll();
-      setUsers(response.data);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to fetch users:', err);
-      setError('Failed to load users. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        setLoading(true);
+        const usersData = await usersAPI.getAll(); // usersData - массив
+        setUsers(usersData);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
+        setError('Failed to load users. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
 
   const handleOpenModal = (user?: User) => {
     if (user) {

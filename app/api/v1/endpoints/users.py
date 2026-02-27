@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -115,7 +115,8 @@ def create_user(
         user_data: UserCreate,
         current_user: UserInDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
-    """ Create a new user [RAW JSON] """
+    """ Create
+     a new user [RAW JSON] """
     if user.get_by_username(db, username=user_data.username):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -124,6 +125,34 @@ def create_user(
 
     new_user = user.create(db, obj_in=user_data)
     return new_user
+
+# from app.schemas.user import UserList
+#
+# @router.get("/", response_model=UserList)
+# def get_users(
+#     db: Session = Depends(deps.get_db),
+#     current_user: UserInDB = Depends(deps.get_current_active_superuser),
+#     skip: int = 0,
+#     limit: int = 100
+# ) -> Any:
+#     users = user.get_multi(db, skip=skip, limit=limit)
+#     total = db.query(User).count()  # или user.model.query.count()
+#     return UserList(total=total, users=users)
+
+
+@router.get("/", response_model=List[UserResponse])
+def get_users(
+    db: Session = Depends(deps.get_db),
+    current_user: UserInDB = Depends(deps.get_current_active_superuser)
+) -> Any:
+    """Retrieve all existing users."""
+    users = user.get_all(db)
+    if not users:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Users not found",
+        )
+    return users
 
 
 # - - - /END ADMIN ROUTES - - - #

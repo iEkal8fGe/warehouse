@@ -1,12 +1,16 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.orm import Session
 from app.core.security import get_password_hash, verify_password
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import UserCreate, UserUpdate, UserResponse
 from .base import CRUDBase
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
+    def get_all(self, db: Session) -> List[UserResponse]:
+        users = db.query(User).all()
+        return [UserResponse.model_validate(u) for u in users]
+
     def get_by_id(self, db: Session, *, user_id: int) -> Optional[User]:
         return db.query(User).filter(User.id == user_id).first()
 
